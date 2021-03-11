@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+        <!DOCTYPE mapper
+                PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+                "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+
+<mapper namespace="com.example.study.mapper.ReserveMapper">
+    <insert id="insertNewReserve" useGeneratedKeys="true"  keyProperty="reserve_id" parameterType="com.example.study.model.entity.Reserve">
+        INSERT INTO reserve_form (reserve_id, reserve_start, reserve_end, openid, table_id, is_vaild) VALUE (#{reserve_id}, #{reserve_start}, #{reserve_end},#{openid},#{table_id},#{is_vaild})
+    </insert>
+</mapper>

@@ -1,0 +1,23 @@
+server:
+  port: 1234
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost/study
+    username: root
+    password: root
+
+debug:
+  false
+
+swagger:
+  enabled: true
+  title: Self-Study-Api
+  exclude-path:
+    - /error
+    - /ops/**
+
+mybatis:
+  mapper-locations:
+    classpath:com.example.study.mapper/*.xml
+

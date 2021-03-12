@@ -65,7 +65,42 @@
         is_vaild tinyint,
         PRIMARY KEY(reserve_id)
     );
-- 注意！这里的代码顺序很重要，因为mysql返回的datatime类型的数据是TimeStamp类型，所以需要通过构造函数把TimeStamp转换为String，但是这样就覆盖了无参的构造函数，导致mybatis无法通过变量名自动匹配变量。为了保证变量构造正确，需要数据库中的变量顺序和有参构造函数一致。
+- ~~注意！这里的代码顺序很重要，因为mysql返回的datatime类型的数据是TimeStamp类型，所以需要通过构造函数把TimeStamp转换为String，但是这样就覆盖了无参的构造函数，导致mybatis无法通过变量名自动匹配变量。为了保证变量构造正确，需要数据库中的变量顺序和有参构造函数一致。~~
+
+## MySQL创建代码
+    mysql -u root -p
+    root
+    CREATE DATABASE study;
+    USE study;
+    CREATE TABLE user_form
+    (
+        openid varchar(100) NOT NULL,
+        is_reserve tinyint,
+        session_key varchar(100),
+        avatar varchar(100),
+        cookie varchar(100),
+        vip tinyint,
+        PRIMARY KEY(openid)
+    );
+    USE study;
+    CREATE TABLE table_form
+    (
+        table_id int NOT NULL AUTO_INCREMENT,
+        is_reserve tinyint,
+        is_using tinyint,
+        PRIMARY KEY(table_id)
+    );
+    USE study;
+    CREATE TABLE reserve_form
+    (
+        reserve_id int NOT NULL AUTO_INCREMENT,
+        reserve_start datetime,
+        reserve_end datetime,
+        openid varchar(100),
+        table_id int,
+        is_vaild tinyint,
+        PRIMARY KEY(reserve_id)
+    );
 
 ## 操作测试
 1. 添加桌子

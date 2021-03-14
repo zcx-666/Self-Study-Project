@@ -49,8 +49,7 @@ public class ReserveService {
         return s.format(Long.valueOf(timeStamp));
     }
 
-    // TODO: 去掉static
-    public static Timestamp dateToTimeStamp(String date) throws ParseException{
+    public Timestamp dateToTimeStamp(String date) throws ParseException{
         // 把格式化的日期 String 转换为 TimeStamp 类型的时间戳
         SimpleDateFormat s= new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         Long t;

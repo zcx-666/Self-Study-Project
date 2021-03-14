@@ -47,8 +47,8 @@ public class ReserveController {
         Table table;
         Reserve reserve_post = new Reserve();
         try {
-            reserve_post.setReserve_start(ReserveService.dateToTimeStamp(request.getReserve_start()));
-            reserve_post.setReserve_end(ReserveService.dateToTimeStamp(request.getReserve_end()));
+            reserve_post.setReserve_start(reserveService.dateToTimeStamp(request.getReserve_start()));
+            reserve_post.setReserve_end(reserveService.dateToTimeStamp(request.getReserve_end()));
         } catch (ParseException e) {
             e.printStackTrace();
             return Response.fail(-10);

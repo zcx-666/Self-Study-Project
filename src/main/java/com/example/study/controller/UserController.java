@@ -2,8 +2,10 @@ package com.example.study.controller;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.example.study.TimeUtils;
 import com.example.study.model.Response;
 import com.example.study.model.entity.User;
+import com.example.study.model.request.GetVipRequest;
 import com.example.study.model.request.LoginRequest;
 import com.example.study.service.UserService;
 import io.swagger.annotations.Api;
@@ -15,6 +17,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
+import java.text.ParseException;
 
 @RestController
 @Api(tags = "用户接口")
@@ -33,7 +36,7 @@ public class UserController {
     @PostMapping("/login")
     public Response<User> login(@RequestBody LoginRequest request, HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
         User user;
-        String url = "https://api.weixin.qq.com/sns/jscode2session";
+        String url = "https://api.weixin.qq.com/sns/jscode2session"; // code换openid和session_key
         JSONObject res = null;
         try {
             res = userService.GetOpenidAndSession(url, request.getCode());
@@ -41,11 +44,11 @@ public class UserController {
             e.printStackTrace();
         }
         if (res == null) {
-            return Response.fail(-3, null);
+            return Response.fail(-3);
         }
         if (res.getString("errcode") != null) {
             // 服务器到微信服务器出问题
-            return Response.fail(res.getInteger("errcode"),res.getString("errmsg"));
+            return Response.fail(res.getInteger("errcode"), res.getString("errmsg"));
         }
         String Openid = res.getString("openid");
         String Session_key = res.getString("session_key");
@@ -60,14 +63,15 @@ public class UserController {
 
             user.setIs_reserve(false);
             user.setOpenid(Openid);
-            user.setVip(0);
+            user.setVip_start(null);
+            user.setVip_end(null);
             // TODO: user.setAvatar()
             if (!userService.insertNewUser(user)) {
                 return Response.fail(-2);
             }
         }
         user.setSession_key(Session_key);
-        userService.updateCookie(servletResponse, user.getOpenid(), user.getSession_key());
+        userService.updateCookie(servletResponse, user.getOpenid());
         userService.updateSession_key(user.getOpenid(), user.getSession_key());
         return Response.success(user);
     }
@@ -76,10 +80,30 @@ public class UserController {
     public Response<User> logout(HttpServletRequest servletRequest) {
         User user;
         user = userService.selectUserByCookie(servletRequest);
-        if(user == null){
+        if (user == null) {
             return Response.fail(-1);
         }
         userService.deleteUserCookie(user.getOpenid());
+        return Response.success(user);
+    }
+
+    @PostMapping("rechargeVIP")
+    public Response<User> rechargeVIP(@RequestBody GetVipRequest getVipRequest, HttpServletRequest servletRequest) {
+        User user = userService.selectUserByCookie(servletRequest);
+        if(user == null){
+            return Response.fail(-1);
+        }
+        try {
+            user.setVip_start(TimeUtils.dateToTimeStamp(getVipRequest.getVip_start()));
+            user.setVip_end(TimeUtils.dateToTimeStamp(getVipRequest.getVip_end()));
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return Response.fail(-10);
+        }
+        if(user.getVip_start().getTime() >= user.getVip_end().getTime()){
+            return Response.fail(-8); // 开始时间必须小于结束时间
+        }
+        userService.rechargeVIP(user);
         return Response.success(user);
     }
 }

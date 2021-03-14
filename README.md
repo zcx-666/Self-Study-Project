@@ -8,21 +8,23 @@
 ### 用户表 - user_form
 |名字|类型|
 |--- |---|
-|openid🔑|varchar|
+|openid🔑|char|
 |is_reserve|tinyint|
 |session_key|varchar|
 |avatar|varchar|
 |cookie|varchar|
-|vip|tinyint|
+|vip_start|datetime|
+|vip_end|datetime|
     USE study;
     CREATE TABLE user_form
     (
-        openid varchar(100) NOT NULL,
+        openid char(100) NOT NULL,
         is_reserve tinyint,
         session_key varchar(100),
         avatar varchar(100),
         cookie varchar(100),
-        vip tinyint,
+        vip_start datetime,
+        vip_end datetime,
         PRIMARY KEY(openid)
     );
     
@@ -52,7 +54,8 @@
 |reserve_end|datetime|
 |openid|varchar|
 |table_id|int|
-|is_vaild|tinyint|
+|reserve_status|tinyint|
+|creat_time|datetime|
 
     USE study;
     CREATE TABLE reserve_form
@@ -66,6 +69,27 @@
         PRIMARY KEY(reserve_id)
     );
 - ~~注意！这里的代码顺序很重要，因为mysql返回的datatime类型的数据是TimeStamp类型，所以需要通过构造函数把TimeStamp转换为String，但是这样就覆盖了无参的构造函数，导致mybatis无法通过变量名自动匹配变量。为了保证变量构造正确，需要数据库中的变量顺序和有参构造函数一致。~~
+
+### 会员充值记录表 - recharge_record_form  
+|名字|类型|
+|--- |---|
+|recharge_record_id🔑|int|
+|vip_start|datetime|
+|vip_end|datetime|
+|openid|varchar|
+|create_time|datetime|
+
+    USE study;
+    CREATE TABLE recharge_record_form
+    (
+        recharge_record_id int NOT NULL AUTO_INCREMENT,
+        vip_start datetime,
+        vip_end datetime,
+        openid char(100),
+        create_time datetime,
+        PRIMARY KEY(recharge_record_id)
+    );
+
 
 ## MySQL创建代码
     mysql -u root -p

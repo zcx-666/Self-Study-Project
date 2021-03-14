@@ -3,8 +3,10 @@ package com.example.study.model.entity;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
-public class Table {
+public class Table implements Serializable {
     private Integer table_id;
     private Boolean is_reserve;
     private Boolean is_using;

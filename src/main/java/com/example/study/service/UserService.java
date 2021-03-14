@@ -85,7 +85,7 @@ public class UserService {
 
     public Boolean insertNewUser(User user) {
         try {
-            userMapper.insertNewUser(user.getOpenid(), user.getIs_reserve(), null, user.getAvatar(), user.getCookie(), user.getVip());
+            userMapper.insertNewUser(user);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -99,7 +99,7 @@ public class UserService {
     }
 
     /*更新用户的cookie，并把cookie放入返回头*/
-    public Boolean updateCookie(HttpServletResponse servletResponse, String openid, String session_key) {
+    public Boolean updateCookie(HttpServletResponse servletResponse, String openid) {
         String cookie = encryption(openid + System.currentTimeMillis());
         servletResponse.addCookie(new Cookie(cookie_name, cookie));
         userMapper.updateCookie(openid, cookie);
@@ -120,4 +120,10 @@ public class UserService {
     public void updateUserReserveState(User user) {
         userMapper.updateUserReserveState(user.getOpenid(), user.getIs_reserve());
     }
+
+    public void rechargeVIP(User user) {
+       userMapper.updateUserVIPTime(user);
+       userMapper.insertVIPRecord(user);
+    }
+
 }

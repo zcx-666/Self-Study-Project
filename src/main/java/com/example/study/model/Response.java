@@ -95,4 +95,7 @@ public class Response<T> {
         }
         return new Response<>(code, msg, data);
     }
+
+    public void foo(){
+    }
 }

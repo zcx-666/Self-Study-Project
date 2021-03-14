@@ -6,17 +6,18 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 
 @Data
-public class Reserve {
+public class Reserve implements Serializable {
     private Integer reserve_id;
     @JsonIgnore
     private String openid;
     private Integer table_id;
     @ApiModelProperty("预定开始时间\"yyyy-MM-dd hh:mm:ss\"")
     private Timestamp reserve_start;
-    @ApiModelProperty("预定结束时间戳\"yyyy-MM-dd hh:mm:ss\"")
+    @ApiModelProperty("预定结束时间\"yyyy-MM-dd hh:mm:ss\"")
     private Timestamp reserve_end;
     @JsonIgnore
     private Boolean is_vaild;

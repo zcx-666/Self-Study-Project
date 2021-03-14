@@ -9,26 +9,32 @@
 |名字|类型|
 |--- |---|
 |openid🔑|char|
-|is_reserve|tinyint|
 |session_key|varchar|
 |avatar|varchar|
 |cookie|varchar|
-|vip_start|datetime|
-|vip_end|datetime|
+|vip_daypass|smallint|
+|vip_time|int|
+|user_status|tinyint| // 
     USE study;
     CREATE TABLE user_form
     (
         openid char(100) NOT NULL,
-        is_reserve tinyint,
         session_key varchar(100),
         avatar varchar(100),
         cookie varchar(100),
-        vip_start datetime,
-        vip_end datetime,
+        vip_daypass smallint,
+        vip_time int,
+        user_status tinyint,
         PRIMARY KEY(openid)
     );
     
-    
+#### 状态表
+|状态代码|状态含义|
+|-|-|
+|0|无状态|
+|1|正在使用时长|
+|2|正在使用天卡|
+|3|已预定|
 
 ### 自习桌表 - table_form
 |名字|类型|
@@ -36,6 +42,7 @@
 |table_id🔑|int|
 |is_reserve|tinyint|
 |is_using|tinyint|
+
 
     USE study;
     CREATE TABLE table_form
@@ -46,16 +53,17 @@
         PRIMARY KEY(table_id)
     );
 
+
 ### 预定表 - reserve_form
 |名字|类型|
 |--- |---|
 |reserve_id🔑|int|
 |reserve_start|datetime|
 |reserve_end|datetime|
+|create_time|datetime|
 |openid|varchar|
 |table_id|int|
 |reserve_status|tinyint|
-|creat_time|datetime|
 
     USE study;
     CREATE TABLE reserve_form
@@ -63,28 +71,40 @@
         reserve_id int NOT NULL AUTO_INCREMENT,
         reserve_start datetime,
         reserve_end datetime,
+        create_time datetime,
         openid varchar(100),
         table_id int,
-        is_vaild tinyint,
+        reserve_status tinyint,
         PRIMARY KEY(reserve_id)
     );
 - ~~注意！这里的代码顺序很重要，因为mysql返回的datatime类型的数据是TimeStamp类型，所以需要通过构造函数把TimeStamp转换为String，但是这样就覆盖了无参的构造函数，导致mybatis无法通过变量名自动匹配变量。为了保证变量构造正确，需要数据库中的变量顺序和有参构造函数一致。~~
+
+#### 状态表
+|状态代码|状态含义|
+|-|-|
+|0|已完成|
+|1|已过期|
+|2|待确认|
+|3|正在使用|
+|4|已确认未使用|
 
 ### 会员充值记录表 - recharge_record_form  
 |名字|类型|
 |--- |---|
 |recharge_record_id🔑|int|
-|vip_start|datetime|
-|vip_end|datetime|
-|openid|varchar|
+|wechat_pay_id|char(100)|
+|vip_daypass|smallint|
+|vip_time|int|
+|openid|char(100)|
 |create_time|datetime|
 
     USE study;
     CREATE TABLE recharge_record_form
     (
         recharge_record_id int NOT NULL AUTO_INCREMENT,
-        vip_start datetime,
-        vip_end datetime,
+        wechat_pay_id char(100),
+        vip_daypass smallint,
+        vip_time int,
         openid char(100),
         create_time datetime,
         PRIMARY KEY(recharge_record_id)
@@ -152,7 +172,7 @@
     SimpleDateFormat s= new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
     System.out.println(s.parse("2021-03-10 03:32:53").getTime());
     显示：1615318373000
-### 范式
+### 泛型
     public static <T> Response<T> fail(String msg) {
         return new Response<T>(0, msg, null);
     }

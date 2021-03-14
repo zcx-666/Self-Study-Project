@@ -1,7 +1,7 @@
 package com.example.study.controller;
 
 
-import com.alibaba.fastjson.JSONObject;
+import com.example.study.TimeUtils;
 import com.example.study.model.Response;
 import com.example.study.model.entity.Reserve;
 import com.example.study.model.entity.Table;
@@ -12,14 +12,15 @@ import com.example.study.service.TableService;
 import com.example.study.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.sql.Timestamp;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -42,13 +43,14 @@ public class ReserveController {
             "      \"reserve_start\": \"2021-03-10 09:02:59\",\n" +
             "      \"reserve_end\": \"2021-03-10 09:03:00\"\n" +
             "    }")
-    private Response<Reserve> reserveTable(@RequestBody ReserveRequest request, HttpServletRequest servletRequest) {
+    private Response<List<Reserve>> reserveTable(@RequestBody ReserveRequest request, HttpServletRequest servletRequest) {
+        // TODO：时长不足
         User user;
         Table table;
         Reserve reserve_post = new Reserve();
         try {
-            reserve_post.setReserve_start(reserveService.dateToTimeStamp(request.getReserve_start()));
-            reserve_post.setReserve_end(reserveService.dateToTimeStamp(request.getReserve_end()));
+            reserve_post.setReserve_start(TimeUtils.dateToTimeStamp(request.getReserve_start()));
+            reserve_post.setReserve_end(TimeUtils.dateToTimeStamp(request.getReserve_end()));
         } catch (ParseException e) {
             e.printStackTrace();
             return Response.fail(-10);
@@ -57,8 +59,8 @@ public class ReserveController {
         if(user == null){
             return Response.fail(-1); // 未登录
         }
-        if(user.getIs_reserve()){
-            return Response.fail(-4); // 已预定过
+        if(user.getUser_status() != 0){
+            return Response.fail(-4);
         }
         if(reserve_post.getReserve_start().getTime() >= reserve_post.getReserve_end().getTime()){
             return Response.fail(-8); // 开始时间必须小于结束时间
@@ -70,33 +72,38 @@ public class ReserveController {
         if(table.getIs_using()){
             return Response.fail(-6); // 正在被使用
         }
+        reserve_post.setReserve_status(2);
+        reserve_post.setCreate_time(new Timestamp(System.currentTimeMillis()));
+        reserveService.insertNewReserve(reserve_post);
         if(table.getIs_reserve()){ // 如果已经被预定了，查看有效的预定记录，并查看预定时间是否冲突，就是两者的时间是否相交
-            List<Reserve> reserves = reserveService.selectVaildReserveByTableId(request.getTable_id());
-            for(Reserve r : reserves){
-                if(reserveService.isTimeConflict(r,reserve_post)){
-                    // 该时段已被预定
-                    return Response.fail(-7, r);
-                }
+            List<Reserve> reserves = reserveService.selectVaildReserve(reserve_post);
+            if(reserves == null){
+                // 肯定没有冲突
+                // TODO：需要测试
+            } else if (reserves.size() > 0){
+                reserveService.deleteReserveById(reserve_post);
+                return Response.fail(-7, reserves); // 冲突
             }
         }
-        reserve_post.setReserve_id(null);
-        reserve_post.setTable_id(request.getTable_id());
-        reserve_post.setOpenid(user.getOpenid());
-        reserve_post.setIs_vaild(true);
-
-        reserveService.insertNewReserve(reserve_post);
-
         table.setIs_reserve(true);
-        user.setIs_reserve(true);
+        if(request.getCode() == 1){
+            user.setUser_status(2);
+        } else if(request.getCode() == 0){
+            user.setUser_status(1);
+        } else {
+            return Response.fail(-11);//
+        }
         tableService.updateTableReserveState(table);
-        userService.updateUserReserveState(user);
-        return Response.success(reserve_post);
+        userService.updateUserState(user);
+        List<Reserve> l = new ArrayList<>();
+        l.add(reserve_post);
+        return Response.success(l);
     }
 
-    @PostMapping("/reserveTest")
+    /*@PostMapping("/reserveTest")
     public Response<List<Reserve>> reserevTest(@RequestBody JSONObject jsonObject){
-        List<Reserve> reserves = reserveService.selectVaildReserveByTableId(jsonObject.getInteger("table_id"));
+        List<Reserve> reserves = reserveService.selectVaildReserve(jsonObject.getInteger("table_id"));
         System.out.println(reserves.size());
         return Response.success(reserves);
-    }
+    }*/
 }

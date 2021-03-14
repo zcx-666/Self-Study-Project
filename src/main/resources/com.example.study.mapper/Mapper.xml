@@ -7,6 +7,6 @@
 
 <mapper namespace="com.example.study.mapper.ReserveMapper">
     <insert id="insertNewReserve" useGeneratedKeys="true"  keyProperty="reserve_id" parameterType="com.example.study.model.entity.Reserve">
-        INSERT INTO reserve_form (reserve_id, reserve_start, reserve_end, openid, table_id, is_vaild) VALUE (#{reserve_id}, #{reserve_start}, #{reserve_end},#{openid},#{table_id},#{is_vaild})
+        INSERT INTO reserve_form (reserve_id, create_time, reserve_start, reserve_end, openid, table_id, reserve_status) VALUE (#{reserve_id}, current_timestamp, #{reserve_start}, #{reserve_end},#{openid},#{table_id},#{reserve_status})
     </insert>
 </mapper>

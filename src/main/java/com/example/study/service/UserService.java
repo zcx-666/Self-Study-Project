@@ -25,7 +25,7 @@ public class UserService {
     @Resource
     private UserMapper userMapper;
 
-    private String cookie_name = ResourceBundle.getBundle("string").getString("cookie_name");
+    private final String cookie_name = ResourceBundle.getBundle("string").getString("cookie_name");
 
     private static String encryption(@NotNull String str) {
         try {
@@ -60,10 +60,8 @@ public class UserService {
         ResourceBundle res = ResourceBundle.getBundle("string");
         String appid = res.getString("appid");
         String secret = res.getString("appsecret");
-        String js_code = code;
-        String grant_type = null;
         // https://api.weixin.qq.com/sns/jscode2session?appid=APPID&secret=SECRET&js_code=JSCODE&grant_type=authorization_code
-        path += "?appid=" + appid + "&secret=" + secret + "&js_code=" + js_code + "&grant_type=authorization_code";
+        path += "?appid=" + appid + "&secret=" + secret + "&js_code=" + code + "&grant_type=authorization_code";
         URL url = new URL(path);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         // 设置连接超时为5秒
@@ -76,8 +74,7 @@ public class UserService {
             byte[] bytes = new byte[in.available()];
             in.read(bytes);
             String msg = new String(bytes);
-            JSONObject jsonObject = JSON.parseObject(msg);
-            return jsonObject;
+            return JSON.parseObject(msg);
         }
         return null;
     }
@@ -112,18 +109,14 @@ public class UserService {
     }
 
 
-    // 测试方法
-    public void dataBaseTest(User user) {
-        // userMapper.insertNewUser(user.getOpenid(),user.getIs_reserve());
+    public void updateUserState(User user) {
+        userMapper.updateUserReserveState(user.getOpenid(), user.getUser_status());
     }
 
-    public void updateUserReserveState(User user) {
-        userMapper.updateUserReserveState(user.getOpenid(), user.getIs_reserve());
-    }
-
-    public void rechargeVIP(User user) {
+    public void rechargeDayVIP(User user, String wechat_pay_id, Integer vipDay, Integer vipTime) {
        userMapper.updateUserVIPTime(user);
-       userMapper.insertVIPRecord(user);
+       //#{wechat_pay_id}, #{vip_daypass}, #{vip_time}, #{openid}
+       userMapper.insertVIPRecord(wechat_pay_id, vipDay, vipTime, user.getOpenid());
     }
 
 }

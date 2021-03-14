@@ -17,11 +17,7 @@ public class TimeUtils {
         // 把格式化的日期 String 转换为 TimeStamp 类型的时间戳
         SimpleDateFormat s= new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         Long t;
-        try {
-            t = s.parse(date).getTime();
-            return new Timestamp(t);
-        } catch (ParseException e){
-            throw e;
-        }
+        t = s.parse(date).getTime();
+        return new Timestamp(t);
     }
 }

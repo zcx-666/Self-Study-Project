@@ -20,13 +20,16 @@ public interface UserMapper {
     @Select("SELECT * FROM user_form WHERE openid=#{openid}")
     User selectUserByOpenId(@Param("openid") String openid);
 
-    @Update("UPDATE user_form SET is_reserve=#{is_reserve} WHERE openid=#{openid}")
+    @Update("UPDATE user_form SET user_status=#{user_status} WHERE openid=#{openid}")
     void updateUserReserveState(@Param("openid") String openid,
-                                @Param("is_reserve") Boolean is_reserve);
+                                @Param("is_reserve") Integer user_status);
 
-    @Update("UPDATE user_form SET vip_start=#{vip_start}, vip_end=#{vip_end} WHERE openid=#{openid}")
+    @Update("UPDATE user_form SET vip_daypass=#{vip_daypass}, vip_time=#{vip_time} WHERE openid=#{openid}")
     void updateUserVIPTime(User user);
 
-    @Insert("INSERT INTO recharge_record_form (openid, vip_start, vip_end, create_time) VALUE (#{openid}, #{vip_start}, #{vip_end}, current_timestamp)")
-    void insertVIPRecord(User user);
+    @Insert("INSERT INTO recharge_record_form (wechat_pay_id, vip_daypass, vip_time, openid,  create_time) VALUE (#{wechat_pay_id}, #{vip_daypass}, #{vip_time}, #{openid}, current_timestamp)")
+    void insertVIPRecord(@Param("wechat_pay_id") String wechat_pay_id,
+                         @Param("vip_daypass") Integer vip_daypass,
+                         @Param("vip_time") Integer vip_time,
+                         @Param("openid") String openid);
 }

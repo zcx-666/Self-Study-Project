@@ -31,7 +31,7 @@ public class Response<T> {
                 msg = "登录失败，服务器断开连接";
                 break;
             case -4:
-                msg = "您已有一项预定";
+                msg = "您已有一项预定或正在使用自习室";
                 break;
             case -5:
                 msg = "预定的桌子不存在";
@@ -50,6 +50,9 @@ public class Response<T> {
                 break;
             case -10:
                 msg = "非法的时间格式";
+                break;
+            case -11:
+                msg = "非法的code";
                 break;
             default:
                 msg = "未知的错误代码";

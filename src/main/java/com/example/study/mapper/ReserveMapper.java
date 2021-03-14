@@ -1,10 +1,7 @@
 package com.example.study.mapper;
 
 import com.example.study.model.entity.Reserve;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -19,9 +16,11 @@ public interface ReserveMapper {
                                  @Param("table_id")Integer table_id,
                                  @Param("is_vaild")Boolean is_vaild);*/
 
-    public void insertNewReserve(Reserve reserve);
+    void insertNewReserve(Reserve reserve);
 
-    @Select("SELECT * FROM reserve_form WHERE table_id = #{table_id} AND is_vaild = TRUE")
-    public List<Reserve> selectVaildReserveByTableId(@Param("table_id") Integer table_id);
+    @Select("SELECT * FROM reserve_form WHERE table_id = #{table_id} AND create_time < #{create_time} and reserve_status >= 2 and not(reserve_start >= #{reserve_end} or reserve_end <= #{reserve_start})")
+    List<Reserve> selectVaildReserve(Reserve reserve);
 
+    @Delete("DELETE FROM reserve_form WHERE reserve_id = #{reserve_id}")
+    void deleteReserveById(@Param("reserve_id") Integer reserve_id);
 }

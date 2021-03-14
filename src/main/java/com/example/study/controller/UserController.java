@@ -2,10 +2,9 @@ package com.example.study.controller;
 
 
 import com.alibaba.fastjson.JSONObject;
-import com.example.study.TimeUtils;
 import com.example.study.model.Response;
 import com.example.study.model.entity.User;
-import com.example.study.model.request.GetVipRequest;
+import com.example.study.model.request.BuyVipDayRequest;
 import com.example.study.model.request.LoginRequest;
 import com.example.study.service.UserService;
 import io.swagger.annotations.Api;
@@ -13,11 +12,8 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
-import java.text.ParseException;
 
 @RestController
 @Api(tags = "用户接口")
@@ -60,11 +56,7 @@ public class UserController {
         user = userService.selectUserByOpenId(Openid);
         if (user == null) {
             user = new User();
-
-            user.setIs_reserve(false);
             user.setOpenid(Openid);
-            user.setVip_start(null);
-            user.setVip_end(null);
             // TODO: user.setAvatar()
             if (!userService.insertNewUser(user)) {
                 return Response.fail(-2);
@@ -87,23 +79,15 @@ public class UserController {
         return Response.success(user);
     }
 
-    @PostMapping("rechargeVIP")
-    public Response<User> rechargeVIP(@RequestBody GetVipRequest getVipRequest, HttpServletRequest servletRequest) {
+    @PostMapping("/rechargeVIP")
+    public Response<User> rechargeVIP(@RequestBody BuyVipDayRequest buyVipDayRequest, HttpServletRequest servletRequest) {
         User user = userService.selectUserByCookie(servletRequest);
         if(user == null){
             return Response.fail(-1);
         }
-        try {
-            user.setVip_start(TimeUtils.dateToTimeStamp(getVipRequest.getVip_start()));
-            user.setVip_end(TimeUtils.dateToTimeStamp(getVipRequest.getVip_end()));
-        } catch (ParseException e) {
-            e.printStackTrace();
-            return Response.fail(-10);
-        }
-        if(user.getVip_start().getTime() >= user.getVip_end().getTime()){
-            return Response.fail(-8); // 开始时间必须小于结束时间
-        }
-        userService.rechargeVIP(user);
+        user.setVip_daypass(user.getVip_daypass() + buyVipDayRequest.getDay());
+        user.setVip_time(user.getVip_time() + buyVipDayRequest.getTime());
+        userService.rechargeDayVIP(user, buyVipDayRequest.getWechat_pay_id(), buyVipDayRequest.getDay(), buyVipDayRequest.getTime());
         return Response.success(user);
     }
 }

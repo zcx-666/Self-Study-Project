@@ -13,16 +13,16 @@ public class User implements Serializable {
     @JsonIgnore
     private String openid;
 
-    @ApiModelProperty("当前是否预定了自习桌")
-    private Boolean is_reserve = false;
+    @ApiModelProperty("0.无状态 1.正在使用时长 2.正在使用天卡 3.已使用时长预定 4.已使用天卡预定")
+    private Integer user_status = 0;
 
     @ApiModelProperty("头像链接")
     private String avatar;
 
-    @ApiModelProperty("VIP开始时间\"yyyy-MM-dd hh:mm:ss\"")
-    private Timestamp vip_start;
-    @ApiModelProperty("VIP结束时间\"yyyy-MM-dd hh:mm:ss\"")
-    private Timestamp vip_end;
+    @ApiModelProperty("天卡剩余时间（天）")
+    private Integer vip_daypass = 0;
+    @ApiModelProperty("剩余可用时间（秒）")
+    private Integer vip_time = 0;
 
     @JsonIgnore
     @ApiModelProperty("来自微信官方")
@@ -30,14 +30,4 @@ public class User implements Serializable {
 
     @JsonIgnore
     private String cookie;
-
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
-    public Timestamp getVip_start() {
-        return vip_start;
-    }
-
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
-    public Timestamp getVip_end() {
-        return vip_end;
-    }
 }

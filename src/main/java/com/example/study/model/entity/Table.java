@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 @Data
 public class Table implements Serializable {
-    private Integer table_id;
+    private Integer table_id; // TODO：能不能删除
     private Boolean is_reserve;
     private Boolean is_using;
 

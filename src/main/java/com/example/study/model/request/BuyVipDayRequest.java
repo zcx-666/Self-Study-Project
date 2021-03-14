@@ -7,13 +7,11 @@ import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 
 @Data
-public class GetVipRequest {
+public class BuyVipDayRequest {
     @NotNull
-    @ApiModelProperty("预定开始时间\"yyyy-MM-dd hh:mm:ss\"")
-    private String vip_start;
-
+    private Integer day;
     @NotNull
-    @ApiModelProperty("预定结束时间\"yyyy-MM-dd hh:mm:ss\"")
-    private String vip_end;
-
+    private Integer time;
+    @NotNull
+    private String wechat_pay_id;
 }

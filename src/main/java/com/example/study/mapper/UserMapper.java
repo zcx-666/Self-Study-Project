@@ -21,8 +21,7 @@ public interface UserMapper {
     User selectUserByOpenId(@Param("openid") String openid);
 
     @Update("UPDATE user_form SET user_status=#{user_status} WHERE openid=#{openid}")
-    void updateUserReserveState(@Param("openid") String openid,
-                                @Param("is_reserve") Integer user_status);
+    void updateUserReserveState(User user);
 
     @Update("UPDATE user_form SET vip_daypass=#{vip_daypass}, vip_time=#{vip_time} WHERE openid=#{openid}")
     void updateUserVIPTime(User user);

@@ -1,7 +1,10 @@
 package com.example.study.service;
 
 import com.example.study.mapper.ReserveMapper;
+import com.example.study.model.Response;
 import com.example.study.model.entity.Reserve;
+import com.example.study.model.entity.Table;
+import com.example.study.model.request.SearchTableByTimeRequest;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -35,5 +38,9 @@ public class ReserveService {
 
     public void deleteReserveById(Reserve reserve_post) {
         reserveMapper.deleteReserveById(reserve_post.getReserve_id());
+    }
+
+    public List<Table> searchTableByTime(SearchTableByTimeRequest searchTableByTimeRequest) {
+        return reserveMapper.searchTableByTime(searchTableByTimeRequest);
     }
 }

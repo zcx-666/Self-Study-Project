@@ -118,12 +118,13 @@
     USE study;
     CREATE TABLE user_form
     (
-        openid varchar(100) NOT NULL,
-        is_reserve tinyint,
+        openid char(100) NOT NULL,
         session_key varchar(100),
         avatar varchar(100),
         cookie varchar(100),
-        vip tinyint,
+        vip_daypass smallint,
+        vip_time int,
+        user_status tinyint,
         PRIMARY KEY(openid)
     );
     USE study;
@@ -140,21 +141,12 @@
         reserve_id int NOT NULL AUTO_INCREMENT,
         reserve_start datetime,
         reserve_end datetime,
+        create_time datetime,
         openid varchar(100),
         table_id int,
-        is_vaild tinyint,
+        reserve_status tinyint,
         PRIMARY KEY(reserve_id)
     );
-
-## 操作测试
-1. 添加桌子
-2. 注册
-    - `INSERT INTO user_form VALUES('wechat_id', '0')`
-3. 预约（是否删除预约记录）
-    - 判断是否预约过（登陆时下载数据，前端判断）
-    - `INSERTY INTO reserve_form VALUES('')`
-    - 判断预约记录是否过期
-    - `select * from reserve_form where reserve_start > DATE_SUB(NOW(),INTERVAL 30 MINUTE)`
 
 ## Cookie
 创建cookie : openid + session_key ==sha==> cookie  

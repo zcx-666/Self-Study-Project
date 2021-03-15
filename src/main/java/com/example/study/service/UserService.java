@@ -110,7 +110,7 @@ public class UserService {
 
 
     public void updateUserState(User user) {
-        userMapper.updateUserReserveState(user.getOpenid(), user.getUser_status());
+        userMapper.updateUserReserveState(user);
     }
 
     public void rechargeDayVIP(User user, String wechat_pay_id, Integer vipDay, Integer vipTime) {

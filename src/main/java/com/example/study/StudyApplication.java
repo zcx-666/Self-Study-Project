@@ -14,7 +14,6 @@ import java.security.NoSuchAlgorithmException;
 public class StudyApplication {
 	/*TODO: logout
 	* TODO: reserve a table
-	* TODO: buy a vip card(day, week, season, month, year)
 	* TODO: unsubscribe a table
 	* TODO: look up reserve table
 	* TODO: overdue reserve

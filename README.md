@@ -1,7 +1,6 @@
 # 数据库 - self_study
 
 ## TODO: 数据库没有清理过往数据功能
-## TODO: 支付确认
 ## TODO: 数据库时区确认
 ## 表结构
     CREATE DATABASE study;

@@ -5,6 +5,7 @@ import com.example.study.TimeUtils;
 import com.example.study.model.Response;
 import com.example.study.model.entity.Reserve;
 import com.example.study.model.entity.Table;
+import com.example.study.model.entity.TableSchedule;
 import com.example.study.model.entity.User;
 import com.example.study.model.request.ReserveRequest;
 import com.example.study.model.request.SearchTableByTimeRequest;
@@ -14,8 +15,6 @@ import com.example.study.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,12 +48,13 @@ public class ReserveController {
             "      \"table_id\": 12,\n" +
             "      \"reserve_start\": \"2021-03-10 09:02:59\",\n" +
             "      \"reserve_end\": \"2021-03-10 09:03:00\"\n" +
-            "    }")
+            "    }\n")
     private Response<List<Reserve>> reserveTable(@RequestBody ReserveRequest request, HttpServletRequest servletRequest) {
         /*TODO:时长不足
         *  TODO:不得早于上班时间和当前时间，晚于下班时间
         *   TODO:开始使用时才扣除天卡
-        *    TODO:使用结束后扣除时间*/
+        *    TODO:使用结束后扣除时间
+        *     TODO:只能预定一周*/
         User user;
         Table table;
         Reserve reserve_post = new Reserve();
@@ -88,14 +88,18 @@ public class ReserveController {
         reserve_post.setOpenid(user.getOpenid());
         reserve_post.setCreate_time(new Timestamp(System.currentTimeMillis()));
         reserveService.insertNewReserve(reserve_post);
-        log.info("新纪录:{}",reserve_post);
-        //if(table.getIs_reserve()){ // 如果已经被预定了，查看有效的预定记录，并查看预定时间是否冲突，就是两者的时间是否相交
-            List<Reserve> reserves = reserveService.selectVaildReserve(reserve_post);
-            if(reserves.size() > 0){
-                log.info("冲突纪录：{}",reserves);
-                reserveService.deleteReserveById(reserve_post);
-                return Response.fail(-7, reserves); // 冲突
-            }
+        log.info("新记录:{}",reserve_post);
+        //if(table.getIs_reserve()){ 
+        // 如果已经被预定了，查看有效的预定记录，并查看预定时间是否冲突，就是两者的时间是否相交
+        List<Reserve> reserves = reserveService.selectConflictingReserve(reserve_post);
+        if(reserves.size() > 0){
+            log.info("冲突纪录：{}",reserves);
+            reserveService.deleteReserveById(reserve_post);
+            return Response.fail(-7, reserves); // 冲突
+        } else {
+            // 无冲突，订单状态2更新为4
+            reserveService.updateReserveStatus(reserve_post);
+        }
         //}
         if(request.getCode() == 1){
             user.setUser_status(2);
@@ -115,13 +119,26 @@ public class ReserveController {
     }
 
     @PostMapping("/searchTableByTime")
-    public Response<List<Table>> searchTableByTime(@RequestBody SearchTableByTimeRequest searchTableByTimeRequest){
-        List<Table> t = reserveService.searchTableByTime(searchTableByTimeRequest);
+    public Response<List<Table>> searchTableByTime(@RequestBody SearchTableByTimeRequest request){
+        Table table;
+        Reserve reserve = new Reserve();
+        try {
+            reserve.setReserve_start(TimeUtils.dateToTimeStamp(request.getReserve_start()));
+            reserve.setReserve_end(TimeUtils.dateToTimeStamp(request.getReserve_end()));
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return Response.fail(-10);
+        }
+        if(reserve.getReserve_start().getTime() >= reserve.getReserve_end().getTime()){
+            return Response.fail(-8); // 开始时间必须小于结束时间
+        }
+        List<Table> t = reserveService.searchTableByTime(reserve);
         return Response.success(t);
     }
 
-    /*@GetMapping("/reserveTest")
-    public Response<List<Table>> reserevTest(@RequestBody SearchTableByTimeRequest searchTableByTimeRequest){
-        return Response.success(null);
-    }*/
+    @GetMapping("/searchTableSchedule")
+    @ApiOperation(value = "searchTableSchedule", notes = "查询所有桌子的被预定情况")
+    public Response<List<TableSchedule>> searchTableSchedule(){
+        return Response.success(reserveService.searchTableSchedule());
+    }
 }

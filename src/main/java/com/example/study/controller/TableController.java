@@ -34,13 +34,13 @@ public class TableController {
     private String cookie_name = ResourceBundle.getBundle("string").getString("cookie_name");
 
     @PostMapping("/addTable")
-    @ApiOperation(value = "增加一张桌子",notes = "只能管理员账户使用（未完成）,table_id == 0 || table_id == null 则使用数据库自动获取的id，如果table_id >= 1则添加Id")
+    @ApiOperation(value = "增加一张桌子",notes = "只能管理员账户使用,table_id == 0 || table_id == null 则使用数据库自动获取的id，如果table_id >= 1则添加Id")
     public Response<Table> addANewTable(@RequestBody AddATableRequest addATableRequest, HttpServletRequest httpServletRequest){
-        User user = userService.selectUserByCookie(httpServletRequest);
-        if(user == null){
+        User admin = userService.selectUserByCookie(httpServletRequest);
+        if(admin == null){
             return Response.fail(-1);
         }
-        if(!user.getIsadmin()){
+        if(!admin.getIsadmin()){
             return Response.fail(-12);
         }
         Table table = new Table();
@@ -55,7 +55,7 @@ public class TableController {
     }
 
     @PostMapping("/addTables")
-    @ApiOperation(value = "增加多张桌子",notes = "只能管理员账户使用,table_id == 0 || table_id == null 则使用数据库自动获取的id，如果table_id >= 1则添加Id")
+    @ApiOperation(value = "增加多张桌子",notes = "只能管理员账户使用,输入增加的数量")
     public Response<Table> addNewTables(@RequestBody AddTablesRequest addTablesRequest, HttpServletRequest httpServletRequest){
         User user = userService.selectUserByCookie(httpServletRequest);
         if(user == null){

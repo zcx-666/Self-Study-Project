@@ -15,7 +15,7 @@ public class Response<T> {
     private T data;
 
     public static <T> Response<T> success(T data) {
-        return new Response<T>(0, null, data);
+        return new Response<>(0, null, data);
     }
 
     public static <T> Response<T> fail(Integer code) {
@@ -66,15 +66,18 @@ public class Response<T> {
             case -15:
                 msg = "订单不存在";
                 break;
+            case -16:
+                msg = "用户不存在";
+                break;
             default:
                 msg = "未知的错误代码";
                 break;
         }
-        return new Response<T>(code, msg, null);
+        return new Response<>(code, msg, null);
     }
 
     public static <T> Response<T> fail(Integer code, String msg) {
-        return new Response<T>(code, msg, null);
+        return new Response<>(code, msg, null);
     }
 
     public static <T> Response<T> fail(Integer code, T data) {

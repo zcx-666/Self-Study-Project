@@ -5,7 +5,9 @@ import org.apache.ibatis.annotations.*;
 
 @Mapper
 public interface UserMapper {
-    @Insert("INSERT INTO user_form (openid, is_reserve, session_key, avatar, cookie, vip_start, vip_end) VALUE (#{openid}, #{is_reserve},#{session_key},#{avatar},#{cookie},#{vip_start},#{vip_end})")
+    @Insert("INSERT INTO user_form (openid, session_key, avatar, cookie, vip_daypass, vip_time, user_status, isadmin) VALUE (#{openid}, #{session_key},#{avatar},#{cookie},#{vip_daypass},#{vip_time}, #{user_status}, #{isadmin})")
+//    @Insert("INSERT INTO user_form () VALUE (#{user})")
+
     void insertNewUser(User user);
 
     @Select("SELECT * FROM user_form WHERE cookie=#{cookie}")

@@ -7,6 +7,7 @@ import com.example.study.model.entity.Reserve;
 import com.example.study.model.entity.Table;
 import com.example.study.model.entity.TableSchedule;
 import com.example.study.model.entity.User;
+import com.example.study.model.request.CancleRequest;
 import com.example.study.model.request.ReserveRequest;
 import com.example.study.model.request.SearchTableByTimeRequest;
 import com.example.study.service.ReserveService;
@@ -58,7 +59,6 @@ public class ReserveController {
         User user;
         Table table;
         Reserve reserve_post = new Reserve();
-        request.getCode();
         try {
             reserve_post.setReserve_start(TimeUtils.dateToTimeStamp(request.getReserve_start()));
             reserve_post.setReserve_end(TimeUtils.dateToTimeStamp(request.getReserve_end()));
@@ -108,7 +108,7 @@ public class ReserveController {
         } else {
             return Response.fail(-11);
         }
-        if(table.getIs_reserve() == false){
+        if(!table.getIs_reserve()){
             table.setIs_reserve(true);
             tableService.updateTableReserveState(table);
         }
@@ -120,7 +120,6 @@ public class ReserveController {
 
     @PostMapping("/searchTableByTime")
     public Response<List<Table>> searchTableByTime(@RequestBody SearchTableByTimeRequest request){
-        Table table;
         Reserve reserve = new Reserve();
         try {
             reserve.setReserve_start(TimeUtils.dateToTimeStamp(request.getReserve_start()));
@@ -140,5 +139,36 @@ public class ReserveController {
     @ApiOperation(value = "searchTableSchedule", notes = "查询所有桌子的被预定情况")
     public Response<List<TableSchedule>> searchTableSchedule(){
         return Response.success(reserveService.searchTableSchedule());
+    }
+
+    @PostMapping("/cancelReserve")
+    public Response<Reserve> cancelReserve(@RequestBody CancleRequest cancleRequest, HttpServletRequest servletRequest){
+        User user;
+        user = userService.selectUserByCookie(servletRequest);
+        if(user == null){
+            return Response.fail(-1); // 未登录
+        }
+        if(user.getUser_status() != 4){
+            return Response.fail(-13);
+        }
+        Reserve reserve = reserveService.searchReserveById(cancleRequest.getReserve_id());
+        if(reserve == null){
+            return Response.fail(-15);
+        }
+        if(reserve.getOpenid() != user.getOpenid()){
+            return Response.fail(-12);
+        }
+        if(reserve.getReserve_status() != 4){
+            return Response.fail(-14);
+        }
+        reserve.setReserve_status(5);
+        reserveService.updateReserveStatus(reserve);
+        return Response.success(reserve);
+    }
+
+    @PostMapping("/tt")
+    public Response<Reserve> tt(@RequestBody CancleRequest cancleRequest, HttpServletRequest servletRequest){
+        Reserve reserve = reserveService.searchReserveById(cancleRequest.getReserve_id());
+        return Response.success(reserve);
     }
 }

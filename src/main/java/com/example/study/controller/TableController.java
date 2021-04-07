@@ -3,6 +3,7 @@ package com.example.study.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.example.study.model.Response;
 import com.example.study.model.entity.Table;
+import com.example.study.model.entity.User;
 import com.example.study.model.request.AddATableRequest;
 import com.example.study.model.request.AddTablesRequest;
 import com.example.study.service.TableService;
@@ -35,12 +36,13 @@ public class TableController {
     @PostMapping("/addTable")
     @ApiOperation(value = "增加一张桌子",notes = "只能管理员账户使用（未完成）,table_id == 0 || table_id == null 则使用数据库自动获取的id，如果table_id >= 1则添加Id")
     public Response<Table> addANewTable(@RequestBody AddATableRequest addATableRequest, HttpServletRequest httpServletRequest){
-        /*User user = userService.selectUserByCookie(httpServletRequest);
+        User user = userService.selectUserByCookie(httpServletRequest);
         if(user == null){
             return Response.fail(-1);
         }
-        Table table = new Table(table_id);
-        tableService.insertNewTable(table);*/
+        if(!user.getIsadmin()){
+            return Response.fail(-12);
+        }
         Table table = new Table();
         table.setTable_id(addATableRequest.getTable_id());
         try {
@@ -53,15 +55,15 @@ public class TableController {
     }
 
     @PostMapping("/addTables")
-    @ApiOperation(value = "增加多张桌子",notes = "只能管理员账户使用（未完成）,table_id == 0 || table_id == null 则使用数据库自动获取的id，如果table_id >= 1则添加Id")
-    public Response<Table> addNewTables(@RequestBody AddTablesRequest addTablesRequest, HttpServletRequest httpServletRequest, HttpServletResponse response){
-        /*User user = userService.selectUserByCookie(httpServletRequest);
+    @ApiOperation(value = "增加多张桌子",notes = "只能管理员账户使用,table_id == 0 || table_id == null 则使用数据库自动获取的id，如果table_id >= 1则添加Id")
+    public Response<Table> addNewTables(@RequestBody AddTablesRequest addTablesRequest, HttpServletRequest httpServletRequest){
+        User user = userService.selectUserByCookie(httpServletRequest);
         if(user == null){
             return Response.fail(-1);
         }
-        Table table = new Table(table_id);
-        tableService.insertNewTable(table);*/
-        response.addCookie(new Cookie("test", "123"));
+        if(!user.getIsadmin()){
+            return Response.fail(-12);
+        }
         Table table = new Table();
         for (int i = 0; i < addTablesRequest.getTable_count(); i++){
             try {

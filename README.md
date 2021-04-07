@@ -13,7 +13,8 @@
 |cookie|varchar|
 |vip_daypass|smallint|
 |vip_time|int|
-|user_status|tinyint| // 
+|user_status|tinyint|
+|isadmin|tinyint| 
     USE study;
     CREATE TABLE user_form
     (
@@ -24,6 +25,7 @@
         vip_daypass smallint,
         vip_time int,
         user_status tinyint,
+        isadmin tinyint,
         PRIMARY KEY(openid)
     );
     
@@ -124,6 +126,7 @@
         vip_daypass smallint,
         vip_time int,
         user_status tinyint,
+        isadmin tinyint,
         PRIMARY KEY(openid)
     );
     USE study;
@@ -146,6 +149,15 @@
         reserve_status tinyint,
         PRIMARY KEY(reserve_id)
     );
+
+    # 每分钟处理过期预定
+    USE study;
+    CREATE EVENT reserve_overdue ON SCHEDULE EVERY 1 MINUTE DO
+    UPDATE reserve_form 
+    SET reserve_status = 1 
+    WHERE
+	reserve_start + MINUTE ( 30 ) < NOW() 
+	AND reserve_status = 4
 
 ## Cookie
 创建cookie : openid + session_key ==sha==> cookie  
@@ -227,9 +239,13 @@
 #### mapper层  
 * 数据存储对象，相当于DAO层，mapper层直接与数据库打交道(执行SQL语句)，接口提供给service层。
 
+### MySql定时任务
+[教程链接][3]
+
 
 
 
 
 [1]: https://blog.csdn.net/peng86788/article/details/80534086
 [2]: https://zhuanlan.zhihu.com/p/49996147
+[3]: https://www.cnblogs.com/javahr/p/9664203.html

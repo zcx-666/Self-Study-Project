@@ -54,6 +54,18 @@ public class Response<T> {
             case -11:
                 msg = "非法的code";
                 break;
+            case -12:
+                msg = "没有权限";
+                break;
+            case -13:
+                msg = "您没有预定过";
+                break;
+            case -14:
+                msg = "该订单已使用或过期";
+                break;
+            case -15:
+                msg = "订单不存在";
+                break;
             default:
                 msg = "未知的错误代码";
                 break;
@@ -67,6 +79,7 @@ public class Response<T> {
 
     public static <T> Response<T> fail(Integer code, T data) {
         String msg;
+        //fail(code);
         switch (code) {
             case -1:
                 msg = "未登录或登录凭证过期";
@@ -97,8 +110,5 @@ public class Response<T> {
                 break;
         }
         return new Response<>(code, msg, data);
-    }
-
-    public void foo(){
     }
 }

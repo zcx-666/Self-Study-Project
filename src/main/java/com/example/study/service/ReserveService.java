@@ -19,7 +19,6 @@ public class ReserveService {
 
     public void insertNewReserve(Reserve reserve) {
         reserveMapper.insertNewReserve(reserve);
-
     }
 
     public List<Reserve> selectConflictingReserve(Reserve reserve){
@@ -33,6 +32,10 @@ public class ReserveService {
 
     public List<Table> searchTableByTime(Reserve reserve) {
         return reserveMapper.searchTableByTime(reserve);
+    }
+
+    public Reserve searchReserveById(Integer id){
+        return reserveMapper.searchReserveById(id);
     }
 
     public void updateReserveStatus(Reserve reserve) {

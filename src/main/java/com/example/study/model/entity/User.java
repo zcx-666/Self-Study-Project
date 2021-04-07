@@ -16,6 +16,8 @@ public class User implements Serializable {
     @ApiModelProperty("0.无状态 1.正在使用时长 2.正在使用天卡 3.已使用时长预定 4.已使用天卡预定")
     private Integer user_status = 0;
 
+    private Boolean isadmin = false;
+
     @ApiModelProperty("头像链接")
     private String avatar;
 

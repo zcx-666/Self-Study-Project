@@ -36,4 +36,7 @@ public interface ReserveMapper {
 
     @Select("SELECT table_form.table_id, reserve_id, reserve_start, reserve_end, create_time, openid, reserve_status FROM table_form LEFT JOIN reserve_form ON table_form.table_id = reserve_form.table_id ORDER BY table_form.table_id")
     List<TableSchedule> searchTableSchedule();
+
+    @Select("SELECT * FROM reserve_form WHERE reserve_id = #{id}")
+    Reserve searchReserveById(Integer id);
 }

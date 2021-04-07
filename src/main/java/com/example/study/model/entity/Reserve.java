@@ -20,16 +20,11 @@ public class Reserve implements Serializable {
     @ApiModelProperty("预定结束时间\"yyyy-MM-dd hh:mm:ss\"")
     private Timestamp reserve_end;
 
-    @ApiModelProperty(value = "0.订单已完成 1.订单已过期 2.订单待确认（后台） 3.正在使用 4.待使用")
+    @ApiModelProperty(value = "0.订单已完成 1.订单已过期 2.订单待确认（后台） 3.正在使用 4.待使用 5.取消")
     private Integer reserve_status;
 
     @ApiModelProperty("订单创建时间\"yyyy-MM-dd hh:mm:ss\"")
     private Timestamp create_time;
-
-
-
-
-
 
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     public Timestamp getReserve_start() {

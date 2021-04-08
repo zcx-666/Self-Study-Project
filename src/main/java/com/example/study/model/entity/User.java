@@ -32,4 +32,15 @@ public class User implements Serializable {
 
     @JsonIgnore
     private String cookie;
+
+    public void copyUser(User user){
+        this.setOpenid(user.getOpenid());
+        this.setUser_status(user.getUser_status());
+        this.setIsadmin(user.getIsadmin());
+        this.setAvatar(user.getAvatar());
+        this.setVip_daypass(user.getVip_daypass());
+        this.setVip_time(user.getVip_time());
+        this.setSession_key(user.getSession_key());
+        this.setCookie(user.getCookie());
+    }
 }

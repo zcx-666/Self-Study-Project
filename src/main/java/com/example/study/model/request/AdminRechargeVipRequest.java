@@ -1,19 +1,18 @@
 package com.example.study.model.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
 
 @Data
-public class AdminRechargeVip {
+public class AdminRechargeVipRequest {
     @NotNull
     private Integer day;
     @NotNull
     private Integer time;
     @NotNull
-    @JsonIgnore
-    private String wechat_pay_id = "adminRecharge";
-    @NotNull
-    private String openid;
+    @ApiModelProperty("wx.login获得的code")
+    private String code;
 }

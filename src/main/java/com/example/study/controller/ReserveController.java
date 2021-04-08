@@ -55,9 +55,8 @@ public class ReserveController {
             reserve_post.setReserve_end(TimeUtils.dateToTimeStamp(request.getReserve_end()));
         } catch (ParseException e) {
             e.printStackTrace();
-            return Response.fail(-10);
+            return Response.fail(-10); // 非法的时间格式
         }
-
         user = userService.selectUserByCookie(servletRequest);
         if(user == null){
             return Response.fail(-1); // 未登录
@@ -68,6 +67,13 @@ public class ReserveController {
         Integer code = reserveService.judgeReserveTime(reserve_post, user);
         if(code != 0){
             return Response.fail(code);
+        }
+        if(request.getCode() == 1){
+            user.setUser_status(4);
+        } else if(request.getCode() == 0){
+            user.setUser_status(3);
+        } else {
+            return Response.fail(-11);
         }
         table = tableService.selectTableByTableId(request.getTable_id());
         if(table == null){
@@ -82,7 +88,6 @@ public class ReserveController {
         reserve_post.setCreate_time(new Timestamp(System.currentTimeMillis()));
         reserveService.insertNewReserve(reserve_post);
         log.info("新记录:{}",reserve_post);
-        //if(table.getIs_reserve()){ 
         // 如果已经被预定了，查看有效的预定记录，并查看预定时间是否冲突，就是两者的时间是否相交
         List<Reserve> reserves = reserveService.selectConflictingReserve(reserve_post);
         if(reserves.size() > 0){
@@ -91,15 +96,8 @@ public class ReserveController {
             return Response.fail(-7, reserves); // 冲突
         } else {
             // 无冲突，订单状态2更新为4
+            reserve_post.setReserve_status(4);
             reserveService.updateReserveStatus(reserve_post);
-        }
-        //}
-        if(request.getCode() == 1){
-            user.setUser_status(2);
-        } else if(request.getCode() == 0){
-            user.setUser_status(1);
-        } else {
-            return Response.fail(-11);
         }
         if(!table.getIs_reserve()){
             table.setIs_reserve(true);
@@ -137,12 +135,13 @@ public class ReserveController {
 
     @PostMapping("/cancelReserve")
     public Response<Reserve> cancelReserve(@RequestBody CancleRequest cancleRequest, HttpServletRequest servletRequest){
+        // TODO: is_reserve的修改
         User user;
         user = userService.selectUserByCookie(servletRequest);
         if(user == null){
             return Response.fail(-1); // 未登录
         }
-        if(user.getUser_status() != 4){
+        if(user.getUser_status() != 4 || user.getUser_status() != 3){
             return Response.fail(-13);
         }
         Reserve reserve = reserveService.searchReserveById(cancleRequest.getReserve_id());
@@ -165,4 +164,17 @@ public class ReserveController {
         Reserve reserve = reserveService.searchReserveById(cancleRequest.getReserve_id());
         return Response.success(reserve);
     }
+
+    @PostMapping("/useTable")
+    @ApiOperation(value = "useTable", notes = "使用桌子（开发中）")
+    public void useTable(){
+        // TODO: useTable
+        /* 接收tableid就ok了
+        * 创建一个待确认的预定，开始时间是现在，结束时间 min(下班时间, VIP时间, 下一个预定时间)
+        * 使用 List<Reserve> reserves = reserveService.selectConflictingReserve()判断冲突
+        * 如果reserves为空则OK
+        * 如果reserves不为空则判断长度是否为1，且openid = 自己（就是使用预定的情况）
+        * 否则就被占用*/
+    }
+
 }

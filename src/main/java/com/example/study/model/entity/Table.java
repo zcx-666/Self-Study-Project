@@ -1,6 +1,7 @@
 package com.example.study.model.entity;
 
 import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -8,7 +9,9 @@ import java.io.Serializable;
 @Data
 public class Table implements Serializable {
     private Integer table_id; // TODO：能不能删除
-    private Boolean is_reserve;
+    @Deprecated
+    @ApiModelProperty("不要使用这个属性")
+    private Boolean is_reserve; // 不建议使用
     private Boolean is_using;
 
     public Table(Integer table_id){

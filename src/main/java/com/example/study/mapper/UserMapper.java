@@ -33,4 +33,7 @@ public interface UserMapper {
                          @Param("vip_daypass") Integer vip_daypass,
                          @Param("vip_time") Integer vip_time,
                          @Param("openid") String openid);
+
+    @Update("UPDATE user_form SET isadmin=#{isadim} WHERE openid=#{openid}")
+    void updateIsAdmin(User user);
 }

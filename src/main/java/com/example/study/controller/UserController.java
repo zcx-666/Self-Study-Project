@@ -37,11 +37,12 @@ public class UserController {
     public Response<User> login(@RequestBody LoginRequest request, HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
         User user;
         String url = "https://api.weixin.qq.com/sns/jscode2session"; // code换openid和session_key
-        JSONObject res = null;
+        JSONObject res;
         try {
             res = userService.GetOpenidAndSession(url, request.getCode());
         } catch (Exception e) {
             e.printStackTrace();
+            return Response.fail(-99, e.toString());
         }
         if (res == null) {
             return Response.fail(-3);
@@ -91,7 +92,7 @@ public class UserController {
         }
         user.setVip_daypass(user.getVip_daypass() + buyVipDayRequest.getDay());
         user.setVip_time(user.getVip_time() + buyVipDayRequest.getTime());
-        userService.rechargeDayVIP(user, buyVipDayRequest.getWechat_pay_id(), buyVipDayRequest.getDay(), buyVipDayRequest.getTime());
+        userService.rechargeVIP(user, buyVipDayRequest.getWechat_pay_id(), buyVipDayRequest.getDay(), buyVipDayRequest.getTime());
         return Response.success(user);
     }
 

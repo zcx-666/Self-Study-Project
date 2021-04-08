@@ -1,20 +1,17 @@
 # 数据库 - self_study
-
-## TODO: 数据库没有清理过往数据功能
-## TODO: 数据库时区确认
 ## 表结构
     CREATE DATABASE study;
 ### 用户表 - user_form
-|名字|类型|
-|--- |---|
-|openid🔑|char|
-|session_key|varchar|
-|avatar|varchar|
-|cookie|varchar|
-|vip_daypass|smallint|
-|vip_time|int|
-|user_status|tinyint|
-|isadmin|tinyint| 
+| 名字        | 类型     |
+| ----------- | -------- |
+| openid🔑     | char     |
+| session_key | varchar  |
+| avatar      | varchar  |
+| cookie      | varchar  |
+| vip_daypass | smallint |
+| vip_time    | int      |
+| user_status | tinyint  |
+| isadmin     | tinyint  |
     USE study;
     CREATE TABLE user_form
     (
@@ -30,19 +27,20 @@
     );
     
 #### 状态表
-|状态代码|状态含义|
-|-|-|
-|0|无状态|
-|1|正在使用时长|
-|2|正在使用天卡|
-|3|已预定|
+| 状态代码 | 状态含义        |
+| -------- | --------------- |
+| 0        | 无状态          |
+| 1        | 正在使用时长    |
+| 2        | 正在使用天卡    |
+| 3        | 已使用时长预定  |
+| 4        | 已使用天卡预定" |
 
 ### 自习桌表 - table_form
-|名字|类型|
-|--- |---|
-|table_id🔑|int|
-|is_reserve|tinyint|
-|is_using|tinyint|
+| 名字       | 类型    |
+| ---------- | ------- |
+| table_id🔑  | int     |
+| is_reserve | tinyint |
+| is_using   | tinyint |
 
 
     USE study;
@@ -56,15 +54,15 @@
 
 
 ### 预定表 - reserve_form
-|名字|类型|
-|--- |---|
-|reserve_id🔑|int|
-|reserve_start|datetime|
-|reserve_end|datetime|
-|create_time|datetime|
-|openid|varchar|
-|table_id|int|
-|reserve_status|tinyint|
+| 名字           | 类型     |
+| -------------- | -------- |
+| reserve_id🔑    | int      |
+| reserve_start  | datetime |
+| reserve_end    | datetime |
+| create_time    | datetime |
+| openid         | varchar  |
+| table_id       | int      |
+| reserve_status | tinyint  |
 
     USE study;
     CREATE TABLE reserve_form
@@ -81,23 +79,24 @@
 - ~~注意！这里的代码顺序很重要，因为mysql返回的datatime类型的数据是TimeStamp类型，所以需要通过构造函数把TimeStamp转换为String，但是这样就覆盖了无参的构造函数，导致mybatis无法通过变量名自动匹配变量。为了保证变量构造正确，需要数据库中的变量顺序和有参构造函数一致。~~
 
 #### 状态表
-|状态代码|状态含义|
-|-|-|
-|0|已完成|
-|1|已过期|
-|2|待确认|
-|3|正在使用|
-|4|已确认未使用|
+| 状态代码 | 状态含义       |
+| -------- | -------------- |
+| 0        | 已完成         |
+| 1        | 已过期         |
+| 2        | 待确认（后台） |
+| 3        | 正在使用       |
+| 4        | 已确认未使用   |
+| 5        | 被取消         |
 
 ### 会员充值记录表 - recharge_record_form  
-|名字|类型|
-|--- |---|
-|recharge_record_id🔑|int|
-|wechat_pay_id|char(100)|
-|vip_daypass|smallint|
-|vip_time|int|
-|openid|char(100)|
-|create_time|datetime|
+| 名字                | 类型      |
+| ------------------- | --------- |
+| recharge_record_id🔑 | int       |
+| wechat_pay_id       | char(100) |
+| vip_daypass         | smallint  |
+| vip_time            | int       |
+| openid              | char(100) |
+| create_time         | datetime  |
 
     USE study;
     CREATE TABLE recharge_record_form
@@ -150,18 +149,27 @@
         PRIMARY KEY(reserve_id)
     );
 
-    # 每分钟处理过期预定
+    # 每分钟处理过期预定，目前不更新桌子的借阅状态
     USE study;
     CREATE EVENT reserve_overdue ON SCHEDULE EVERY 1 MINUTE DO
-    UPDATE reserve_form 
-    SET reserve_status = 1 
+    UPDATE reserve_form, user_form
+    SET reserve_form.reserve_status = 1, user_form.user_status = 0 
     WHERE
-	reserve_start + MINUTE ( 30 ) < NOW() 
-	AND reserve_status = 4
-
+    (reserve_start + MINUTE ( 30 ) < NOW() OR reserve_form.reserve_end < NOW())
+    AND reserve_status = 4 AND reserve_form.openid = user_form.openid;
 ## Cookie
 创建cookie : openid + session_key ==sha==> cookie  
 验证cookie : 通过openid得到session_key,然后加密并验证
+
+## TODO
+- [ ] 每天下班清理所有使用中的订单
+- [ ] 定期转移陈旧的数据，增加数据库的运行效率
+- [ ] 建立索引
+- [ ] 定时处理到时间的使用
+- [ ] 管理员给管理员权限
+- [ ] 管理员下机
+- [ ] 天卡推荐座位
+- [x] 时长卡推荐时间(searchTableByTime)
 
 ## 笔记
 ### 获取当前时间戳
@@ -180,6 +188,10 @@
         return new Response<T>(0, msg, null);
     }
 - 第一个\<T>表示这个函数是一个泛型函数，第二个\<T>则是Response的泛型
+### 每天3点执行事件
+    CREATE EVENT event_demo_insert
+    on schedule EVERY 1 DAY STARTS date_add(date( ADDDATE(curdate(),1)),interval 3 hour)  
+    do INSERT INTO demo value(CURRENT_TIMESTAMP);
 
 ### 插入数据并返回新数据的主键
 1. 在application.yml添加配置  

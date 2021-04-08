@@ -12,13 +12,6 @@ import java.util.List;
 
 @Mapper
 public interface ReserveMapper {
-    /*@Insert("INSERT INTO reserve_form (reserve_id, reserve_start, reserve_end, openid, table_id, is_vaild) VALUE (#{reserve_id}, #{reserve_start}, #{reserve_end},#{openid},#{table_id},#{is_vaild})")
-    public void insertNewReserve(@Param("reserve_id")Integer reserve_id,
-                                 @Param("openid")String openid,
-                                 @Param("reserve_start") Timestamp reserve_start,
-                                 @Param("reserve_end")Timestamp reserve_end,
-                                 @Param("table_id")Integer table_id,
-                                 @Param("is_vaild")Boolean is_vaild);*/
 
     void insertNewReserve(Reserve reserve);
 
@@ -31,7 +24,7 @@ public interface ReserveMapper {
     @Select("SELECT * FROM table_form WHERE NOT EXISTS (SELECT reserve_form.table_id FROM reserve_form WHERE reserve_status > 2 AND NOT (reserve_start >= #{reserve_end} OR reserve_end <= #{reserve_start}) AND table_form.table_id = reserve_form.table_id)")
     List<Table> searchTableByTime(Reserve reserve); // 查找不时间冲突的桌子, 不包括待确认的订单
 
-    @Update("UPDATE reserve_form SET reserve_status = #{reserve_status}")
+    @Update("UPDATE reserve_form SET reserve_status = #{reserve_status} WHERE reserve_id = #{reserve_id}")
     void updateReserveStatus(Reserve reserve);
 
     @Select("SELECT table_form.table_id, reserve_id, reserve_start, reserve_end, create_time, openid, reserve_status FROM table_form LEFT JOIN reserve_form ON table_form.table_id = reserve_form.table_id ORDER BY table_form.table_id")

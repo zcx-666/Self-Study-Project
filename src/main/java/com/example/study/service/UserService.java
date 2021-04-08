@@ -3,6 +3,7 @@ package com.example.study.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.example.study.mapper.UserMapper;
+import com.example.study.model.Response;
 import com.example.study.model.entity.User;
 import org.springframework.stereotype.Service;
 
@@ -123,10 +124,32 @@ public class UserService {
         userMapper.updateUserReserveState(user);
     }
 
-    public void rechargeDayVIP(User user, String wechat_pay_id, Integer vipDay, Integer vipTime) {
+    public void updateUserIsAdmin(User user){
+        userMapper.updateIsAdmin(user);
+    }
+
+    public void rechargeVIP(User user, String wechat_pay_id, Integer vipDay, Integer vipTime) {
         userMapper.updateUserVIPTime(user);
         //#{wechat_pay_id}, #{vip_daypass}, #{vip_time}, #{openid}
         userMapper.insertVIPRecord(wechat_pay_id, vipDay, vipTime, user.getOpenid());
     }
 
+    public Integer judgeUser(HttpServletRequest request, User user){
+        User user1 = selectUserByCookie(request);
+        if(user1 == null){
+            return -1;
+        }
+        user.copyUser(user1);
+        return 0;
+    }
+    public Integer judgeAdmin(HttpServletRequest request, User admin) {
+        Integer code = judgeUser(request, admin);
+        if(code != 0){
+            return code;
+        }
+        if(!admin.getIsadmin()){
+            return -12;
+        }
+        return 0;
+    }
 }

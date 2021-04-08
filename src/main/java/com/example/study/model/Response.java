@@ -81,37 +81,8 @@ public class Response<T> {
     }
 
     public static <T> Response<T> fail(Integer code, T data) {
-        String msg;
-        //fail(code);
-        switch (code) {
-            case -1:
-                msg = "未登录或登录凭证过期";
-                break;
-            case -2:
-                msg = "创建新用户失败";
-                break;
-            case -3:
-                msg = "登录失败，服务器断开连接";
-                break;
-            case -4:
-                msg = "您已有一项预定";
-                break;
-            case -5:
-                msg = "预定的桌子不存在";
-                break;
-            case -6:
-                msg = "预定的桌子正在被使用";
-                break;
-            case -7:
-                msg = "该时段已被该订单预定";
-                break;
-            case -8:
-                msg = "开始时间必须小于结束时间";
-                break;
-            default:
-                msg = "未知的错误代码";
-                break;
-        }
-        return new Response<>(code, msg, data);
+        Response response = fail(code);
+        response.setData(data);
+        return response;
     }
 }

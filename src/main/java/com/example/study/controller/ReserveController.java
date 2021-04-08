@@ -44,18 +44,9 @@ public class ReserveController {
     private TableService tableService;
 
     @PostMapping("/reserve")
-    @ApiOperation(value = "预定一张桌子", notes = "文档不准确，data部分应该如下\n{\n" +
-            "      \"reserve_id\": 27,\n" +
-            "      \"table_id\": 12,\n" +
-            "      \"reserve_start\": \"2021-03-10 09:02:59\",\n" +
-            "      \"reserve_end\": \"2021-03-10 09:03:00\"\n" +
-            "    }\n")
     private Response<List<Reserve>> reserveTable(@RequestBody ReserveRequest request, HttpServletRequest servletRequest) {
-        /*TODO:时长不足
-        *  TODO:不得早于上班时间和当前时间，晚于下班时间
-        *   TODO:开始使用时才扣除天卡
-        *    TODO:使用结束后扣除时间
-        *     TODO:只能预定一周*/
+        /*TODO:开始使用时才扣除天卡
+        * TODO:使用结束后扣除时间*/
         User user;
         Table table;
         Reserve reserve_post = new Reserve();
@@ -66,6 +57,7 @@ public class ReserveController {
             e.printStackTrace();
             return Response.fail(-10);
         }
+
         user = userService.selectUserByCookie(servletRequest);
         if(user == null){
             return Response.fail(-1); // 未登录
@@ -73,8 +65,9 @@ public class ReserveController {
         if(user.getUser_status() != 0){
             return Response.fail(-4);
         }
-        if(reserve_post.getReserve_start().getTime() >= reserve_post.getReserve_end().getTime()){
-            return Response.fail(-8); // 开始时间必须小于结束时间
+        Integer code = reserveService.judgeReserveTime(reserve_post, user);
+        if(code != 0){
+            return Response.fail(code);
         }
         table = tableService.selectTableByTableId(request.getTable_id());
         if(table == null){
@@ -128,8 +121,9 @@ public class ReserveController {
             e.printStackTrace();
             return Response.fail(-10);
         }
-        if(reserve.getReserve_start().getTime() >= reserve.getReserve_end().getTime()){
-            return Response.fail(-8); // 开始时间必须小于结束时间
+        Integer code = reserveService.judgeReserveTime(reserve, null);
+        if(code != 0){
+            return Response.fail(code);
         }
         List<Table> t = reserveService.searchTableByTime(reserve);
         return Response.success(t);

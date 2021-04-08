@@ -73,13 +73,13 @@ public class UserController {
     }
 
     @PostMapping("/logout")
-    public Response<User> logout(HttpServletRequest servletRequest) {
+    public Response<User> logout(HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
         User user;
         user = userService.selectUserByCookie(servletRequest);
         if (user == null) {
             return Response.fail(-1);
         }
-        userService.deleteUserCookie(user.getOpenid());
+        userService.deleteUserCookie(servletRequest, servletResponse, user.getOpenid());
         return Response.success(user);
     }
 
@@ -94,4 +94,5 @@ public class UserController {
         userService.rechargeDayVIP(user, buyVipDayRequest.getWechat_pay_id(), buyVipDayRequest.getDay(), buyVipDayRequest.getTime());
         return Response.success(user);
     }
+
 }

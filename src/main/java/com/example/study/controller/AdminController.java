@@ -8,10 +8,7 @@ import com.example.study.model.request.BuyVipDayRequest;
 import com.example.study.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -46,7 +43,7 @@ public class AdminController {
 
     @GetMapping("/admin/loginByOpenid")
     @ApiOperation(value = "登录（测试用）")
-    public Response<User> login(@RequestBody String openid, HttpServletResponse servletResponse){
+    public Response<User> login(@RequestParam("openid") String openid, HttpServletResponse servletResponse){
         User user = userService.selectUserByOpenId(openid);
         if(user == null){
             return Response.fail(-16);

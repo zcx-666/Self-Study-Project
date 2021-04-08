@@ -45,7 +45,7 @@ public class UserService {
     public User selectUserByCookie(@NotNull HttpServletRequest servletRequest) {
         User user = null;
         Cookie[] cookies = servletRequest.getCookies();
-        if(cookies == null || cookies.length <= 0)
+        if (cookies == null || cookies.length <= 0)
             return null;
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals(cookie_name)) {
@@ -90,16 +90,26 @@ public class UserService {
         return true;
     }
 
-    public Boolean deleteUserCookie(String openid) {
+    public Boolean deleteUserCookie(HttpServletRequest servletRequest, HttpServletResponse servletResponse, String openid) {
+        Cookie[] cookies = servletRequest.getCookies();
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals(cookie_name)) {
+                cookie.setMaxAge(0);
+                servletResponse.addCookie(cookie);
+                break;
+            }
+        }
         userMapper.updateCookie(openid, "");
         return true;
     }
 
     /*更新用户的cookie，并把cookie放入返回头*/
     public Boolean updateCookie(HttpServletResponse servletResponse, String openid) {
-        String cookie = encryption(openid + System.currentTimeMillis());
-        servletResponse.addCookie(new Cookie(cookie_name, cookie));
-        userMapper.updateCookie(openid, cookie);
+        String cookieStr = encryption(openid + System.currentTimeMillis());
+        Cookie cookie = new Cookie(cookie_name, cookieStr);
+        cookie.setPath("/");
+        servletResponse.addCookie(cookie);
+        userMapper.updateCookie(openid, cookieStr);
         return true;
     }
 
@@ -114,9 +124,9 @@ public class UserService {
     }
 
     public void rechargeDayVIP(User user, String wechat_pay_id, Integer vipDay, Integer vipTime) {
-       userMapper.updateUserVIPTime(user);
-       //#{wechat_pay_id}, #{vip_daypass}, #{vip_time}, #{openid}
-       userMapper.insertVIPRecord(wechat_pay_id, vipDay, vipTime, user.getOpenid());
+        userMapper.updateUserVIPTime(user);
+        //#{wechat_pay_id}, #{vip_daypass}, #{vip_time}, #{openid}
+        userMapper.insertVIPRecord(wechat_pay_id, vipDay, vipTime, user.getOpenid());
     }
 
 }

@@ -74,11 +74,11 @@ public class ReserveService {
         }
         if (false && user != null) {
             if (code == null) {
-                return 0;
+                return -99;
             }
             if (code == 0) {
                 // 使用时长
-                Long t = start.getTime() - end.getTime() / 1000; // 预定时长
+                Long t = (start.getTime() - end.getTime()) / 1000; // 预定时长
                 Integer vip = user.getVip_time();
                 if (t > vip) {
                     return -22; // VIP时长不足
@@ -107,7 +107,7 @@ public class ReserveService {
     }
 
     public Integer judgeUseTime(Reserve reserve, User user, Integer code) {
-        Integer err = judgeReserveTime(reserve, user, null);
+        Integer err = judgeReserveTime(reserve, user, code);
         if(err != 0){
             return err;
         }

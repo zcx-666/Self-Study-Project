@@ -51,9 +51,9 @@ public class AdminController {
         if(user == null){
             return Response.fail(-16);
         }
-        user.setVip_daypass(user.getVip_daypass() + request.getDay());
-        user.setVip_time(user.getVip_time() + request.getTime());
-        userService.rechargeVIP(user, "admin:" + admin.getOpenid(), request.getDay(), request.getTime());
+        user.setVip_daypass(user.getVip_daypass() + request.getVipDay());
+        user.setVip_time(user.getVip_time() + request.getVipTime());
+        userService.rechargeVIP(user, "admin:" + admin.getOpenid(), request.getVipDay(), request.getVipTime());
         return Response.success(user);
     }
 
@@ -100,5 +100,45 @@ public class AdminController {
         user.setIsadmin(true);
         userService.updateUserState(user);
         return Response.success(user);
+    }
+
+    @GetMapping("/admin/getOpenidByCookie")
+    @ApiOperation(value = "管理员获得自己的Openid")
+    public Response<String> getOpenidByCookie(HttpServletRequest request){
+        User admin = new User();
+        Integer code = userService.judgeAdmin(request, admin);
+        if(code != 0){
+            return Response.fail(code);
+        }else {
+            return Response.success(admin.getOpenid());
+        }
+    }
+
+    @GetMapping("/admin/getOpenidByCode")
+    @ApiOperation(value = "管理员通过用户提供的code获得Openid")
+    public Response<String> getOpenidByCode(LoginRequest loginRequest, HttpServletRequest request){
+        User admin = new User();
+        Integer code = userService.judgeAdmin(request, admin);
+        if(code != 0){
+            return Response.fail(code);
+        }else {
+            String url = "https://api.weixin.qq.com/sns/jscode2session"; // code换openid和session_key
+            JSONObject res;
+            try {
+                res = userService.GetOpenidAndSession(url, loginRequest.getCode());
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Response.fail(-99, e.toString());
+            }
+            if (res == null) {
+                return Response.fail(-3);
+            }
+            if (res.getString("errcode") != null) {
+                // 服务器到微信服务器出问题
+                return Response.fail(res.getInteger("errcode"), res.getString("errmsg"));
+            }
+            String Openid = res.getString("openid");
+            return Response.success(Openid);
+        }
     }
 }

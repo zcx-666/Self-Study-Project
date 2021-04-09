@@ -2,23 +2,24 @@ package com.example.study.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.example.study.model.Response;
+import com.example.study.model.entity.Reserve;
 import com.example.study.model.entity.Table;
 import com.example.study.model.entity.User;
 import com.example.study.model.request.AddATableRequest;
 import com.example.study.model.request.AddTablesRequest;
+import com.example.study.service.ReserveService;
 import com.example.study.service.TableService;
 import com.example.study.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.List;
 import java.util.ResourceBundle;
 
 @RestController
@@ -30,6 +31,9 @@ public class TableController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private ReserveService reserveService;
 
     private String cookie_name = ResourceBundle.getBundle("string").getString("cookie_name");
 
@@ -75,4 +79,38 @@ public class TableController {
         }
         return Response.success(table);
     }
+
+    /*@GetMapping("/deleteTable")
+    @ApiOperation(value = "删除桌子", notes = "不建议使用")
+    // TODO: 管理员
+    public Response<Integer> deleteTable(@RequestParam Integer table_id, HttpServletRequest request){
+        User admin = new User();
+        Integer code = userService.judgeAdmin(request, admin);
+        if(0 != code){
+            return Response.fail(code);
+        }
+        Table table = tableService.selectTableByTableId(table_id);
+        if(table == null){
+            return Response.fail(-5);
+        }
+        if(table.getIs_using()){
+            return Response.fail(-6);
+        }
+        // 桌子是否有未使用的预定
+        List<Reserve> reserves;
+        reserves = reserveService.searchReserveByTableId(table_id);
+        if(0 != reserves.size()){
+            for(Reserve reserve : reserves){
+                Integer status = reserve.getReserve_status();
+                if(status == 4 || status == 2){
+                    return Response.fail(-18);
+                }
+            }
+        }
+        Integer num = tableService.deleteTableById(table_id);
+        if(0 == num){
+            return Response.fail(-17);
+        }
+        return Response.success(table_id);
+    }*/
 }

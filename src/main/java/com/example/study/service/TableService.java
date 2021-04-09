@@ -28,4 +28,8 @@ public class TableService {
     public void updateTableReserveState(Table table) {
         tableMapper.updateTableReserveState(table.getTable_id(),table.getIs_reserve());
     }
+
+    public Integer deleteTableById(Integer table_id) {
+        return tableMapper.deleteTableById(table_id);
+    }
 }

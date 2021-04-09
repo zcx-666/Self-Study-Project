@@ -9,9 +9,9 @@ import javax.validation.constraints.NotNull;
 @Data
 public class AdminRechargeVipRequest {
     @NotNull
-    private Integer day;
+    private Integer vipDay;
     @NotNull
-    private Integer time;
+    private Integer vipTime;
     @NotNull
     @ApiModelProperty("wx.login获得的code")
     private String code;

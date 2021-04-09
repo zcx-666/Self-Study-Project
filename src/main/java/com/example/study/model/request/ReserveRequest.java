@@ -13,7 +13,7 @@ public class ReserveRequest {
     private String reserve_start;
 
     @NotNull
-    @ApiModelProperty("预定结束时间\"yyyy-MM-dd hh:mm:ss\" 如果使用天卡就把预定结束时间写成当日的23：59")
+    @ApiModelProperty("预定结束时间\"yyyy-MM-dd hh:mm:ss\" 如果使用天卡可以要求用户把预定结束时间写成当日的23：59")
     private String reserve_end;
 
     @NotNull

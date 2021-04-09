@@ -26,13 +26,6 @@ public class UserController {
     @Resource
     private UserService userService;
 
-    @GetMapping("/Test")
-    @ApiOperation(value = "方法名称", notes = "描述")
-    public String hello() {
-        return "hello";
-    }
-
-
     @PostMapping("/login")
     public Response<User> login(@RequestBody LoginRequest request, HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
         User user;

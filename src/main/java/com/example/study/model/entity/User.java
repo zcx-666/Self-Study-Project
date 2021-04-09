@@ -1,19 +1,18 @@
 package com.example.study.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 
 @Data
 public class User implements Serializable {
+    // TODO：增加reserve_id，-1为空
     @JsonIgnore
     private String openid;
 
-    @ApiModelProperty("0.无状态 1.正在使用时长 2.正在使用天卡 3.已使用时长预定 4.已使用天卡预定")
+    @ApiModelProperty("0.无状态 1.正在使用时长自习 2.正在使用天卡自习 3.已使用时长预定 4.已使用天卡预定 5.正在使用天卡，但是没有在使用自习室")
     private Integer user_status = 0;
 
     private Boolean isadmin = false;

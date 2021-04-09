@@ -34,10 +34,10 @@ public class Response<T> {
                 msg = "您已有一项预定或正在使用自习室";
                 break;
             case -5:
-                msg = "预定的桌子不存在";
+                msg = "桌子不存在";
                 break;
             case -6:
-                msg = "预定的桌子正在被使用";
+                msg = "桌子正在被使用";
                 break;
             case -7:
                 msg = "该时段已被预定";
@@ -68,6 +68,36 @@ public class Response<T> {
                 break;
             case -16:
                 msg = "用户不存在";
+                break;
+            case -17:
+                msg = "删除失败";
+                break;
+            case -18:
+                msg = "桌子存在预定";
+                break;
+            case -19:
+                msg = "必须在同一天";
+                break;
+            case -20:
+                msg = "时间太早了";
+                break;
+            case -21:
+                msg = "预定时长过短";
+                break;
+            case -22:
+                msg = "余额不足";
+                break;
+            case -23:
+                msg = "您正在使用自习室";
+                break;
+            case -24:
+                msg = "您预定的时间还没到";
+                break;
+            case -25:
+                msg = "您预定的不是这张桌子";
+                break;
+            case -26:
+                msg = "时间太晚了";
                 break;
             default:
                 msg = "未知的错误代码";

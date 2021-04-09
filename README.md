@@ -157,6 +157,8 @@
     WHERE
     (reserve_start + MINUTE ( 30 ) < NOW() OR reserve_form.reserve_end < NOW())
     AND reserve_status = 4 AND reserve_form.openid = user_form.openid;
+
+
 ## Cookie
 创建cookie : openid + session_key ==sha==> cookie  
 验证cookie : 通过openid得到session_key,然后加密并验证
@@ -165,11 +167,24 @@
 - [ ] 每天下班清理所有使用中的订单
 - [ ] 定期转移陈旧的数据，增加数据库的运行效率
 - [ ] 建立索引
-- [ ] 定时处理到时间的使用
+- [ ] 自动处理到时间的使用，修改订单状态、用户状态、用户vip时长
 - [ ] 管理员给管理员权限
 - [ ] 管理员下机
 - [ ] 天卡推荐座位
 - [x] 时长卡推荐时间(searchTableByTime)
+- [ ] 每天下班清理用户的天卡使用状态
+- [ ] 数字大小越界
+- [x] 预定只能预定同一天
+- [ ] 信用系统（迟到、取消），让前端先做一个吓吓人
+- [ ] 使用桌子
+- [ ] 结束使用桌子（如果正在使用天卡，user.status = 5）
+- [ ] 点击太快了，休息一下
+- [ ] https://developers.weixin.qq.com/community/develop/doc/0006ca988c85587908a9a88c05bc09?_at=1617962069342
+### 问一下
+- [ ] 预定最短、最长时长，如果最短时间<30minutes，还得增加一个数据库自动运行事件
+- [ ] 上下班时间
+- [ ] 最远预定时间
+- [ ] 使用自习室的时候能不能预定另一张桌子（使用天卡占领两张桌子）
 
 ## 笔记
 ### 获取当前时间戳

@@ -19,4 +19,6 @@ public interface TableMapper {
     void updateTableReserveState(@Param("table_id")Integer table_id,
                                  @Param("is_reserve")Boolean is_reserve);
 
+    @Delete("DELETE FROM table_form WHERE table_id = #{table_id}")
+    Integer deleteTableById(Integer table_id);
 }

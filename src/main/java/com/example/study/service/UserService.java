@@ -3,8 +3,10 @@ package com.example.study.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.example.study.mapper.UserMapper;
-import com.example.study.model.Response;
 import com.example.study.model.entity.User;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -21,6 +23,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ResourceBundle;
 
 @Service
+@Slf4j
 public class UserService {
 
     @Resource
@@ -124,7 +127,7 @@ public class UserService {
         userMapper.updateUserReserveState(user);
     }
 
-    public void updateUserIsAdmin(User user){
+    public void updateUserIsAdmin(User user) {
         userMapper.updateIsAdmin(user);
     }
 
@@ -134,20 +137,22 @@ public class UserService {
         userMapper.insertVIPRecord(wechat_pay_id, vipDay, vipTime, user.getOpenid());
     }
 
-    public Integer judgeUser(HttpServletRequest request, User user){
+    public Integer judgeUser(HttpServletRequest request, User user) {
         User user1 = selectUserByCookie(request);
-        if(user1 == null){
+        if (user1 == null) {
+            log.info("登录失败:{}", user.getCookie());
             return -1;
         }
         user.copyUser(user1);
         return 0;
     }
+
     public Integer judgeAdmin(HttpServletRequest request, User admin) {
         Integer code = judgeUser(request, admin);
-        if(code != 0){
+        if (code != 0) {
             return code;
         }
-        if(!admin.getIsadmin()){
+        if (!admin.getIsadmin()) {
             return -12;
         }
         return 0;

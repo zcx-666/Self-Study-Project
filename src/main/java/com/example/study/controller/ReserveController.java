@@ -7,7 +7,7 @@ import com.example.study.model.entity.Reserve;
 import com.example.study.model.entity.Table;
 import com.example.study.model.entity.TableSchedule;
 import com.example.study.model.entity.User;
-import com.example.study.model.request.CancleRequest;
+import com.example.study.model.request.CancelRequest;
 import com.example.study.model.request.ReserveRequest;
 import com.example.study.model.request.SearchTableByTimeRequest;
 import com.example.study.service.ReserveService;
@@ -150,7 +150,7 @@ public class ReserveController {
     }
 
     @PostMapping("/cancelReserve")
-    public Response<Reserve> cancelReserve(@RequestBody CancleRequest cancleRequest, HttpServletRequest servletRequest) {
+    public Response<Reserve> cancelReserve(@RequestBody CancelRequest cancelRequest, HttpServletRequest servletRequest) {
         // TODO: is_reserve的修改
         // TODO: 下机貌似可以用这里的代码
         User user;
@@ -161,7 +161,7 @@ public class ReserveController {
         if (user.getUser_status() != 4 && user.getUser_status() != 3) {
             return Response.fail(-13);
         }
-        Reserve reserve = reserveService.searchReserveById(cancleRequest.getReserve_id());
+        Reserve reserve = reserveService.searchReserveById(cancelRequest.getReserve_id());
         if (reserve == null) {
             return Response.fail(-15);
         }
@@ -279,7 +279,7 @@ public class ReserveController {
         List<Reserve> reserves = reserveService.selectConflictingReserve(reserve_post);
         if (reserves.size() > 0) {
             for (Reserve reserve : reserves) {
-                if (reserve.getOpenid() != user.getOpenid()) {
+                if (!reserve.getOpenid().equals(user.getOpenid())) {
                     // 一个人只有一个订单吧，按快了和我没关系，既然不是用户的订单，那就是冲突了
                     log.info("使用冲突纪录：{}", reserves);
                     reserveService.deleteReserveById(reserve_post);

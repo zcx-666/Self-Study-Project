@@ -5,7 +5,7 @@ import lombok.Data;
 import javax.validation.constraints.NotNull;
 
 @Data
-public class CancleRequest {
+public class CancelRequest {
     @NotNull
     private Integer reserve_id;
 }

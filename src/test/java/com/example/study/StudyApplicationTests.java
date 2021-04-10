@@ -1,10 +1,12 @@
 package com.example.study;
 
+
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 //@SpringBootTest
@@ -22,10 +24,18 @@ class StudyApplicationTests {
 		System.out.println(students);
 		System.out.println(student);
 		log.error("异常数据:{},{}",student,student);
-		Long a = 10000L;
-		int s = 12800;
-		Integer sb = null;
-		System.out.println(sb);
+		Student a = new Student();
+		Student b = new Student();
+		System.out.println(a.getName() == b.getName());
+		a.setName("123321");
+		b.setName("123321");
+		System.out.println(a.getName() == b.getName());
+		System.out.println(a == b);
+
+		String s1 = new String("java");
+		String s2 = new String("java");
+
+		System.out.println(s1==s2);
 	}
 
 	@Data

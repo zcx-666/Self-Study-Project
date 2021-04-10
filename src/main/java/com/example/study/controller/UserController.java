@@ -89,4 +89,14 @@ public class UserController {
         return Response.success(user);
     }
 
+    @GetMapping("/getUserInfoByCookie")
+    @ApiOperation(value = "刷新用户信息")
+    public Response<User> getUserInfoByCookie(HttpServletRequest request){
+        User user = new User();
+        Integer code = userService.judgeUser(request, user);
+        if(code != 0){
+            return Response.fail(code);
+        }
+        return Response.success(user);
+    }
 }

@@ -10,7 +10,7 @@ import java.io.Serializable;
 public class Table implements Serializable {
     private Integer table_id; // TODO：能不能删除
     @Deprecated
-    @ApiModelProperty("不要使用这个属性")
+    @ApiModelProperty("不要使用这个属性判断桌子的借阅情况")
     private Boolean is_reserve; // 不建议使用
     private Boolean is_using;
 

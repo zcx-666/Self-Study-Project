@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.List;
 
 @Service
 public class TableService {
@@ -31,5 +32,9 @@ public class TableService {
 
     public Integer deleteTableById(Integer table_id) {
         return tableMapper.deleteTableById(table_id);
+    }
+
+    public List<Table> getAllTables() {
+        return tableMapper.selectAllTables();
     }
 }

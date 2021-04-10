@@ -38,20 +38,20 @@ public class TableController {
     private String cookie_name = ResourceBundle.getBundle("string").getString("cookie_name");
 
     @PostMapping("/addTable")
-    @ApiOperation(value = "增加一张桌子",notes = "只能管理员账户使用,table_id == 0 || table_id == null 则使用数据库自动获取的id，如果table_id >= 1则添加Id")
-    public Response<Table> addANewTable(@RequestBody AddATableRequest addATableRequest, HttpServletRequest httpServletRequest){
+    @ApiOperation(value = "增加一张桌子", notes = "只能管理员账户使用,table_id == 0 || table_id == null 则使用数据库自动获取的id，如果table_id >= 1则添加Id")
+    public Response<Table> addANewTable(@RequestBody AddATableRequest addATableRequest, HttpServletRequest httpServletRequest) {
         User admin = userService.selectUserByCookie(httpServletRequest);
-        if(admin == null){
+        if (admin == null) {
             return Response.fail(-1);
         }
-        if(!admin.getIsadmin()){
+        if (!admin.getIsadmin()) {
             return Response.fail(-12);
         }
         Table table = new Table();
         table.setTable_id(addATableRequest.getTable_id());
         try {
             tableService.insertNewTable(table);
-        } catch (SQLIntegrityConstraintViolationException e){
+        } catch (SQLIntegrityConstraintViolationException e) {
             e.printStackTrace();
             return Response.fail(-9);
         }
@@ -59,26 +59,41 @@ public class TableController {
     }
 
     @PostMapping("/addTables")
-    @ApiOperation(value = "增加多张桌子",notes = "只能管理员账户使用,输入增加的数量")
-    public Response<Table> addNewTables(@RequestBody AddTablesRequest addTablesRequest, HttpServletRequest httpServletRequest){
+    @ApiOperation(value = "增加多张桌子", notes = "只能管理员账户使用,输入增加的数量")
+    public Response<Table> addNewTables(@RequestBody AddTablesRequest addTablesRequest, HttpServletRequest httpServletRequest) {
         User user = userService.selectUserByCookie(httpServletRequest);
-        if(user == null){
+        if (user == null) {
             return Response.fail(-1);
         }
-        if(!user.getIsadmin()){
+        if (!user.getIsadmin()) {
             return Response.fail(-12);
         }
         Table table = new Table();
-        for (int i = 0; i < addTablesRequest.getTable_count(); i++){
+        for (int i = 0; i < addTablesRequest.getTable_count(); i++) {
             try {
                 tableService.insertNewTable(table);
-            } catch (SQLIntegrityConstraintViolationException e){
+            } catch (SQLIntegrityConstraintViolationException e) {
                 e.printStackTrace();
                 return Response.fail(-9);
             }
         }
         return Response.success(table);
     }
+
+    @GetMapping("/getAllTables")
+    public Response<List<Table>> getAllTables(HttpServletRequest servletRequest) {
+        User user = new User();
+        Integer code = userService.judgeUser(servletRequest, user);
+        if (code != 0) {
+            return Response.fail(code);
+        }
+        List<Table> l = tableService.getAllTables();
+        if (l == null || l.size() == 0) {
+            return Response.fail(-27);
+        }
+        return Response.success(l);
+    }
+
 
     /*@GetMapping("/deleteTable")
     @ApiOperation(value = "删除桌子", notes = "不建议使用")

@@ -5,7 +5,6 @@ import com.example.study.TimeUtils;
 import com.example.study.model.Response;
 import com.example.study.model.entity.Reserve;
 import com.example.study.model.entity.Table;
-import com.example.study.model.entity.TableSchedule;
 import com.example.study.model.entity.User;
 import com.example.study.model.request.CancelRequest;
 import com.example.study.model.request.ReserveRequest;
@@ -132,8 +131,13 @@ public class ReserveController {
     }
 
     @GetMapping("/searchTableSchedule")
-    @ApiOperation(value = "searchTableSchedule", notes = "查询所有桌子的被预定情况")
-    public Response<List<TableSchedule>> searchTableSchedule() {
+    @ApiOperation(value = "searchTableSchedule（不推荐使用）", notes = "查询所有桌子的所有状态的订单，如果桌子没有订单，则除了table_id外都为空(不推荐使用，推荐使用/getValidReserve)")
+    public Response<List<Reserve>> searchTableSchedule(HttpServletRequest servletRequest) {
+        User user = new User();
+        Integer code = userService.judgeUser(servletRequest, user);
+        if(code != 0){
+            return Response.fail(code);
+        }
         return Response.success(reserveService.searchTableSchedule());
     }
 
@@ -179,8 +183,8 @@ public class ReserveController {
     }
 
     @PostMapping("/useTable")
-    @ApiOperation(value = "useTable", notes = "使用桌子（使用预定过的没预定过的都可以）,先用searchTableByTime获得合适桌子的id,然后再用这个接口创建订单。" +
-            "Tips:订单开始时间是“现在”，结束时间 min(下班时间, VIP时间, 下一个别人的预定的开始时间（通过searchTableSchedule获得）)，不需要用户输入")
+    @ApiOperation(value = "useTable", notes = "使用桌子（有没有预定过都可以）," +
+            "Tips:订单开始时间是“现在”，结束时间 min(下班时间, VIP时间, 下一个别人的预定的开始时间（通过getValidReserve获得,最好使用旧的，报错了再请求新数据）)，不需要用户输入")
     public Response<List<Reserve>> useTable(@RequestBody ReserveRequest request, HttpServletRequest servletRequest) {
         // TODO: useTable, 可以使用未来的时间段
         /*  创建一个待确认的预定，开始时间是现在，结束时间 min(下班时间, VIP时间, 下一个预定时间，时长卡剩余时间，天卡),交给前端吧
@@ -301,4 +305,28 @@ public class ReserveController {
         return Response.success(l);
     }
 
+    @PostMapping("/finishUse")
+    public Response<Reserve> finishUse(HttpServletRequest servletRequest){
+        User user = new User();
+        Integer code = userService.judgeUser(servletRequest, user);
+        if(code != 0){
+            return Response.fail(code);
+        }
+        /* 输入订单ID、cookie
+        * 找到订单，判断是否在使用、openid是否一致
+        * 修改结束时间（可能存在使用超时，覆盖了下一个预定）
+        * */
+        return null;
+    }
+
+    @GetMapping("/getValidReserve")
+    @ApiOperation(value = "/getValidReserve", notes = "获得所有正在使用、已预定的订单")
+    public Response<List<Reserve>> getValidReserve(HttpServletRequest servletRequest) {
+        User user = new User();
+        Integer code = userService.judgeUser(servletRequest, user);
+        if(code != 0){
+            return Response.fail(code);
+        }
+        return Response.success(reserveService.getValidReserve());
+    }
 }

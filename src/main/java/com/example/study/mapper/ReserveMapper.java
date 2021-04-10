@@ -1,13 +1,9 @@
 package com.example.study.mapper;
 
-import com.example.study.model.Response;
 import com.example.study.model.entity.Reserve;
 import com.example.study.model.entity.Table;
-import com.example.study.model.entity.TableSchedule;
-import com.example.study.model.request.SearchTableByTimeRequest;
 import org.apache.ibatis.annotations.*;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 @Mapper
@@ -28,7 +24,7 @@ public interface ReserveMapper {
     void updateReserveStatus(Reserve reserve);
 
     @Select("SELECT table_form.table_id, reserve_id, reserve_start, reserve_end, create_time, openid, reserve_status FROM table_form LEFT JOIN reserve_form ON table_form.table_id = reserve_form.table_id ORDER BY table_form.table_id")
-    List<TableSchedule> searchTableSchedule();
+    List<Reserve> searchTableSchedule();
 
     @Select("SELECT * FROM reserve_form WHERE reserve_id = #{id}")
     Reserve searchReserveById(Integer id);
@@ -38,4 +34,7 @@ public interface ReserveMapper {
 
     @Select("SELECT * FROM reserve_form WHERE table_id = #{table_id}")
     List<Reserve> searchReserveByTableId(Integer table_id);
+
+    @Select("SELECT * FROM reserve_form WHERE reserve_status = 3 or reserve_status = 4 ORDER BY table_id")
+    List<Reserve> getValidReserve();
 }

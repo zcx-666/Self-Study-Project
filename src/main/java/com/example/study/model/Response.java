@@ -99,6 +99,9 @@ public class Response<T> {
             case -26:
                 msg = "时间太晚了";
                 break;
+            case -27:
+                msg = "桌子表为空";
+                break;
             default:
                 msg = "未知的错误代码";
                 break;

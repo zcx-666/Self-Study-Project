@@ -4,6 +4,8 @@ import com.example.study.model.entity.Table;
 import com.example.study.model.entity.User;
 import org.apache.ibatis.annotations.*;
 
+import java.util.List;
+
 @Mapper
 public interface TableMapper {
 
@@ -21,4 +23,7 @@ public interface TableMapper {
 
     @Delete("DELETE FROM table_form WHERE table_id = #{table_id}")
     Integer deleteTableById(Integer table_id);
+
+    @Select("SELECT * FROM table_form")
+    List<Table> selectAllTables();
 }

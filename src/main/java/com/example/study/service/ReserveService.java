@@ -1,10 +1,8 @@
 package com.example.study.service;
 
 import com.example.study.mapper.ReserveMapper;
-import com.example.study.model.Response;
 import com.example.study.model.entity.Reserve;
 import com.example.study.model.entity.Table;
-import com.example.study.model.entity.TableSchedule;
 import com.example.study.model.entity.User;
 import org.springframework.stereotype.Service;
 
@@ -45,7 +43,7 @@ public class ReserveService {
         reserveMapper.updateReserveStatus(reserve);
     }
 
-    public List<TableSchedule> searchTableSchedule() {
+    public List<Reserve> searchTableSchedule() {
         return reserveMapper.searchTableSchedule();
     }
 
@@ -125,5 +123,9 @@ public class ReserveService {
         }
 
         return 0;
+    }
+
+    public List<Reserve> getValidReserve() {
+        return reserveMapper.getValidReserve();
     }
 }

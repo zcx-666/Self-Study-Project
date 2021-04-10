@@ -141,4 +141,6 @@ public class AdminController {
             return Response.success(Openid);
         }
     }
+
+    // TODO: 取消管理员权限
 }

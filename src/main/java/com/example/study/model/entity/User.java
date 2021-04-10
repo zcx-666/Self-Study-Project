@@ -8,7 +8,7 @@ import java.io.Serializable;
 
 @Data
 public class User implements Serializable {
-    // TODO：增加reserve_id，-1为空
+    // TODO：增加reserve_id，-1为空，增加查找效率
     @JsonIgnore
     private String openid;
 

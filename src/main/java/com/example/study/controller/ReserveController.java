@@ -7,6 +7,7 @@ import com.example.study.model.entity.Reserve;
 import com.example.study.model.entity.Table;
 import com.example.study.model.entity.User;
 import com.example.study.model.request.CancelRequest;
+import com.example.study.model.request.FinishRequest;
 import com.example.study.model.request.ReserveRequest;
 import com.example.study.model.request.SearchTableByTimeRequest;
 import com.example.study.service.ReserveService;
@@ -15,6 +16,7 @@ import com.example.study.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,9 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -44,7 +48,7 @@ public class ReserveController {
     private TableService tableService;
 
     @PostMapping("/reserve")
-    private Response<List<Reserve>> reserveTable(@RequestBody ReserveRequest request, HttpServletRequest servletRequest) {
+    private Response<List<Reserve>> reserveTable(@RequestBody @Valid ReserveRequest request, HttpServletRequest servletRequest) {
         /*TODO:开始使用时才扣除天卡
          * TODO:使用结束后扣除时间*/
         User user;
@@ -113,7 +117,7 @@ public class ReserveController {
 
     @PostMapping("/searchTableByTime")
     @ApiOperation(value = "通过时间查找可用桌子", notes = "不包括用户自己的预定")
-    public Response<List<Table>> searchTableByTime(@RequestBody SearchTableByTimeRequest request) {
+    public Response<List<Table>> searchTableByTime(@RequestBody @Valid SearchTableByTimeRequest request) {
         Reserve reserve = new Reserve();
         try {
             reserve.setReserve_start(TimeUtils.dateToTimeStamp(request.getReserve_start()));
@@ -135,7 +139,7 @@ public class ReserveController {
     public Response<List<Reserve>> searchTableSchedule(HttpServletRequest servletRequest) {
         User user = new User();
         Integer code = userService.judgeUser(servletRequest, user);
-        if(code != 0){
+        if (code != 0) {
             return Response.fail(code);
         }
         return Response.success(reserveService.searchTableSchedule());
@@ -154,13 +158,13 @@ public class ReserveController {
     }
 
     @PostMapping("/cancelReserve")
-    public Response<Reserve> cancelReserve(@RequestBody CancelRequest cancelRequest, HttpServletRequest servletRequest) {
+    public Response<Reserve> cancelReserve(@RequestBody @Valid CancelRequest cancelRequest, HttpServletRequest servletRequest) {
         // TODO: is_reserve的修改
         // TODO: 下机貌似可以用这里的代码
-        User user;
-        user = userService.selectUserByCookie(servletRequest);
-        if (user == null) {
-            return Response.fail(-1); // 未登录
+        User user = new User();
+        Integer code = userService.judgeUser(servletRequest, user);
+        if (code != 0) {
+            return Response.fail(0);
         }
         if (user.getUser_status() != 4 && user.getUser_status() != 3) {
             return Response.fail(-13);
@@ -170,7 +174,7 @@ public class ReserveController {
             return Response.fail(-15);
         }
         if (!reserve.getOpenid().equals(user.getOpenid())) {
-            return Response.fail(-12);
+            return Response.fail(-28);
         }
         if (reserve.getReserve_status() != 4) {
             return Response.fail(-14);
@@ -184,8 +188,8 @@ public class ReserveController {
 
     @PostMapping("/useTable")
     @ApiOperation(value = "useTable", notes = "使用桌子（有没有预定过都可以）," +
-            "Tips:订单开始时间是“现在”，结束时间 min(下班时间, VIP时间, 下一个别人的预定的开始时间（通过getValidReserve获得,最好使用旧的，报错了再请求新数据）)，不需要用户输入")
-    public Response<List<Reserve>> useTable(@RequestBody ReserveRequest request, HttpServletRequest servletRequest) {
+            "Tips:请求码根据用户的预定情况来，订单开始时间是“现在”，结束时间 min(下班时间, VIP时间, 下一个别人的预定的开始时间（通过getValidReserve获得,最好使用旧的，报错了再请求新数据）)，不需要用户输入，如果是后两者情况需要提醒用户，否则影响用户体验")
+    public Response<List<Reserve>> useTable(@RequestBody @Valid ReserveRequest request, HttpServletRequest servletRequest) {
         // TODO: useTable, 可以使用未来的时间段
         /*  创建一个待确认的预定，开始时间是现在，结束时间 min(下班时间, VIP时间, 下一个预定时间，时长卡剩余时间，天卡),交给前端吧
          * 用户可以预定一个时间，然后再使用一个时间
@@ -228,13 +232,13 @@ public class ReserveController {
         Integer reserve_id = null;
         if (status == 3 || status == 4) {
             List<Reserve> reserves = reserveService.searchReserveByOpenId(user.getOpenid());
-            if(reserves.size() == 0){
+            if (reserves.size() == 0) {
                 log.error("用户状态为预定，但是找不到预定数据:{},{}", reserves, user);
                 return Response.fail(-99);
             }
             for (Reserve reserve : reserves) {
                 if (reserve.getReserve_status() == 4) {
-                    // 找到订单
+                    // 找到使用中的订单，但是不一定是用户的
                     if (!reserve.getTable_id().equals(request.getTable_id())) {
                         List<Reserve> t = new ArrayList<>();
                         t.add(reserve);
@@ -255,7 +259,7 @@ public class ReserveController {
                             reserve_post.setReserve_end(reserve.getReserve_end());
                         }
 
-                        if(request.getCode() == 0){
+                        if (request.getCode() == 0) {
                             Timestamp start = reserve_post.getReserve_start();
                             Timestamp end = reserve_post.getReserve_end();
                             Long t = (start.getTime() - end.getTime()) / 1000; // 预定时长
@@ -269,7 +273,7 @@ public class ReserveController {
                             return Response.fail(code1);
                         } 不做判断，因为存在迟到的可能，但是会存在时长卡不足的情况*/
                     }
-                    reserve_id = reserve.getReserve_id();
+//                    reserve_id = reserve.getReserve_id();
                     break;
                 }
             }
@@ -305,28 +309,64 @@ public class ReserveController {
         return Response.success(l);
     }
 
-    @PostMapping("/finishUse")
-    public Response<Reserve> finishUse(HttpServletRequest servletRequest){
-        User user = new User();
-        Integer code = userService.judgeUser(servletRequest, user);
-        if(code != 0){
-            return Response.fail(code);
-        }
-        /* 输入订单ID、cookie
-        * 找到订单，判断是否在使用、openid是否一致
-        * 修改结束时间（可能存在使用超时，覆盖了下一个预定）
-        * */
-        return null;
-    }
-
     @GetMapping("/getValidReserve")
     @ApiOperation(value = "/getValidReserve", notes = "获得所有正在使用、已预定的订单")
     public Response<List<Reserve>> getValidReserve(HttpServletRequest servletRequest) {
         User user = new User();
         Integer code = userService.judgeUser(servletRequest, user);
-        if(code != 0){
+        if (code != 0) {
             return Response.fail(code);
         }
         return Response.success(reserveService.getValidReserve());
+    }
+
+    @PostMapping("/finishUse")
+    public Response<Reserve> finishUse(@RequestBody @Valid FinishRequest finishRequest, HttpServletRequest servletRequest) {
+        /* 输入订单ID、cookie
+         * 找到订单，判断是否在使用（reserve_status == 3）、openid是否一致，否则报错
+         * 把结束时间改成现在（可能存在使用超时，覆盖了下一个预定。会不会出现A先预定了，然后B在A预定时间到前使用了桌子，然后一直使用下去，直到覆盖了A的预定？除非出BUG，不然不会）
+         * 把订单状态改成0
+         * 如果user_status != 1 || 2, 用户不在使用中，报错
+         * if user_status == 1 正在使用时长
+         * end-start => 使用时长(需要毫秒 => 秒的转换)
+         * user.vip_time -= 使用时长
+         * else if user_status == 2
+         * user.vip_daypass--
+         * 在数据库中更新reserve和user
+         * */
+        User user = new User();
+        Integer code = userService.judgeUser(servletRequest, user);
+        if (code != 0) {
+            return Response.fail(code);
+        }
+        Reserve reserve = reserveService.searchReserveById(finishRequest.getReserve_id());
+        if (reserve == null) {
+            return Response.fail(-15);
+        }
+        if (!reserve.getOpenid().equals(user.getOpenid())) {
+            return Response.fail(-28);
+        }
+        if (reserve.getReserve_status() != 3) {
+            return Response.fail(-30);
+        }
+        // 修改订单状态
+        Timestamp now = new Timestamp(new Date().getTime());
+        reserve.setReserve_end(now);
+        reserve.setReserve_status(0);
+        if (user.getUser_status() == 1) {
+            Long useTime = (reserve.getReserve_end().getTime() - reserve.getReserve_start().getTime()) / 1000;
+            Long left = user.getVip_time() - useTime;
+            Integer t = left.intValue();
+            user.setVip_time(t);
+            user.setUser_status(0);
+        } else if (user.getUser_status() == 2) {
+            user.setVip_daypass(user.getVip_daypass() - 1);
+            user.setUser_status(5);
+        } else {
+            return Response.fail(-29);
+        }
+        userService.updateUserState(user);
+        reserveService.updateReserveStatus(reserve);
+        return Response.success(reserve);
     }
 }

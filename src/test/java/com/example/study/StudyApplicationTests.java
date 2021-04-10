@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -31,16 +32,38 @@ class StudyApplicationTests {
 		b.setName("123321");
 		System.out.println(a.getName() == b.getName());
 		System.out.println(a == b);
+	}
 
-		String s1 = new String("java");
-		String s2 = new String("java");
+	@Test
+	void pp(){
+		Date t = new Date();
+		Timestamp a = new Timestamp(t.getTime());
+		System.out.println(a);
+		t.setMinutes(t.getMinutes() - 1);
+		Timestamp b = new Timestamp(t.getTime());
+		System.out.println(b);
+		System.out.println(a.getTime() - b.getTime());
+		Long x = a.getTime();
+		Integer s = x.intValue();
+		System.out.println(x);
+		System.out.println(s);
+		System.out.println(Integer.MAX_VALUE);
 
-		System.out.println(s1==s2);
+
 	}
 
 	@Data
 	class Student{
 		private String name = "zcx";
 		private Integer id = 12;
+	}
+
+	@Data
+	class People extends Student{
+		private String name;
+		private Integer age = 12;
+		/*public People(){
+			super();
+		}*/
 	}
 }

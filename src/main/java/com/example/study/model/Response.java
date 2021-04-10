@@ -102,6 +102,15 @@ public class Response<T> {
             case -27:
                 msg = "桌子表为空";
                 break;
+            case -28:
+                msg = "不是您的订单";
+                break;
+            case -29:
+                msg = "您现在没有在使用自习桌";
+                break;
+            case -30:
+                msg = "订单不在使用中";
+                break;
             default:
                 msg = "未知的错误代码";
                 break;

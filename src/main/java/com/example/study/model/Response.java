@@ -4,8 +4,10 @@ import com.alibaba.fastjson.JSONObject;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
+@Slf4j
 @AllArgsConstructor
 public class Response<T> {
     @ApiModelProperty("0成功，负数出错")
@@ -111,6 +113,9 @@ public class Response<T> {
             case -30:
                 msg = "订单不在使用中";
                 break;
+            case -31:
+                msg = "桌子不在使用中";
+                break;
             default:
                 msg = "未知的错误代码";
                 break;
@@ -125,6 +130,9 @@ public class Response<T> {
     public static <T> Response<T> fail(Integer code, T data) {
         Response response = fail(code);
         response.setData(data);
+        if(data != null){
+            log.error("错误代码:{},错误信息:{},错误数据:{}",code, response.msg, data);
+        }
         return response;
     }
 }

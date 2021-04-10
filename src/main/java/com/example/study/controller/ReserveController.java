@@ -324,6 +324,7 @@ public class ReserveController {
     public Response<Reserve> finishUse(@RequestBody @Valid FinishRequest finishRequest, HttpServletRequest servletRequest) {
         /* 输入订单ID、cookie
          * 找到订单，判断是否在使用（reserve_status == 3）、openid是否一致，否则报错
+         * 找到桌子，判断桌子是否在使用中，不在则报错
          * 把结束时间改成现在（可能存在使用超时，覆盖了下一个预定。会不会出现A先预定了，然后B在A预定时间到前使用了桌子，然后一直使用下去，直到覆盖了A的预定？除非出BUG，不然不会）
          * 把订单状态改成0
          * 如果user_status != 1 || 2, 用户不在使用中，报错
@@ -332,7 +333,7 @@ public class ReserveController {
          * user.vip_time -= 使用时长
          * else if user_status == 2
          * user.vip_daypass--
-         * 在数据库中更新reserve和user
+         * 在数据库中更新reserve、table和user
          * */
         User user = new User();
         Integer code = userService.judgeUser(servletRequest, user);
@@ -340,6 +341,7 @@ public class ReserveController {
             return Response.fail(code);
         }
         Reserve reserve = reserveService.searchReserveById(finishRequest.getReserve_id());
+        Table table = tableService.selectTableByTableId(reserve.getTable_id());
         if (reserve == null) {
             return Response.fail(-15);
         }
@@ -349,6 +351,11 @@ public class ReserveController {
         if (reserve.getReserve_status() != 3) {
             return Response.fail(-30);
         }
+        if(!table.getIs_using()){
+            Response.fail(-31, table);
+            return Response.fail(-31);
+        }
+        table.setIs_using(true);
         // 修改订单状态
         Timestamp now = new Timestamp(new Date().getTime());
         reserve.setReserve_end(now);
@@ -367,6 +374,7 @@ public class ReserveController {
         }
         userService.updateUserState(user);
         reserveService.updateReserveStatus(reserve);
+        tableService.updateTableReserveState(table);
         return Response.success(reserve);
     }
 }

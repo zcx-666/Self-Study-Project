@@ -3,9 +3,14 @@ package com.example.study.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.example.study.model.Response;
+import com.example.study.model.entity.Reserve;
+import com.example.study.model.entity.Table;
 import com.example.study.model.entity.User;
 import com.example.study.model.request.AdminRechargeVipRequest;
+import com.example.study.model.request.FinishRequest;
 import com.example.study.model.request.LoginRequest;
+import com.example.study.service.ReserveService;
+import com.example.study.service.TableService;
 import com.example.study.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -14,6 +19,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.sql.Timestamp;
+import java.util.Date;
 
 @RestController
 @Api(tags = "管理员接口")
@@ -21,6 +29,12 @@ public class AdminController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private ReserveService reserveService;
+
+    @Resource
+    private TableService tableService;
 
     @PostMapping("/admin/rechargeVIP")
     public Response<User> rechargeVIP(@RequestBody AdminRechargeVipRequest request, HttpServletRequest servletRequest) {
@@ -142,5 +156,50 @@ public class AdminController {
         }
     }
 
-    // TODO: 取消管理员权限
+    @PostMapping("/admin/finishUse")
+    public Response<Reserve> finishUse(@RequestBody @Valid FinishRequest finishRequest, HttpServletRequest servletRequest){
+        User admin = new User();
+        Integer code = userService.judgeUser(servletRequest, admin);
+        if (code != 0) {
+            return Response.fail(code);
+        }
+
+        // 和普通一样
+        Reserve reserve = reserveService.searchReserveById(finishRequest.getReserve_id());
+        Table table = tableService.selectTableByTableId(reserve.getTable_id());
+        User user = userService.selectUserByOpenId(reserve.getOpenid());
+        if (reserve == null) {
+            return Response.fail(-15);
+        }
+        if (!reserve.getOpenid().equals(user.getOpenid())) {
+            return Response.fail(-28);
+        }
+        if (reserve.getReserve_status() != 3) {
+            return Response.fail(-30);
+        }
+        if(!table.getIs_using()){
+            Response.fail(-31, table);
+            return Response.fail(-31);
+        }
+        table.setIs_using(true);
+        Timestamp now = new Timestamp(new Date().getTime());
+        reserve.setReserve_end(now);
+        reserve.setReserve_status(0);
+        if (user.getUser_status() == 1) {
+            Long useTime = (reserve.getReserve_end().getTime() - reserve.getReserve_start().getTime()) / 1000;
+            Long left = user.getVip_time() - useTime;
+            Integer t = left.intValue();
+            user.setVip_time(t);
+            user.setUser_status(0);
+        } else if (user.getUser_status() == 2) {
+            user.setVip_daypass(user.getVip_daypass() - 1);
+            user.setUser_status(5);
+        } else {
+            return Response.fail(-29);
+        }
+        userService.updateUserState(user);
+        reserveService.updateReserveStatus(reserve);
+        tableService.updateTableReserveState(table);
+        return Response.success(reserve);
+    }
 }

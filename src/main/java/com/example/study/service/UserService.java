@@ -3,6 +3,7 @@ package com.example.study.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.example.study.mapper.UserMapper;
+import com.example.study.model.Response;
 import com.example.study.model.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -140,7 +141,7 @@ public class UserService {
     public Integer judgeUser(HttpServletRequest request, User user) {
         User user1 = selectUserByCookie(request);
         if (user1 == null) {
-            log.info("登录失败:{}", user.getCookie());
+            Response.fail(-1, request.getCookies());
             return -1;
         }
         user.copyUser(user1);

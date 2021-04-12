@@ -158,4 +158,8 @@ public class UserService {
         }
         return 0;
     }
+
+    public void updateUserStateAndVIPTime(User user) {
+        userMapper.updateUserReserveStateAndVIPTime(user);
+    }
 }

@@ -35,8 +35,6 @@ import java.util.List;
 @RestController
 @Api(tags = "预定接口")
 public class ReserveController {
-    // TODO: 查找用户的预定记录
-
 
     @Resource
     private ReserveService reserveService;
@@ -49,8 +47,6 @@ public class ReserveController {
 
     @PostMapping("/reserve")
     private Response<List<Reserve>> reserveTable(@RequestBody @Valid ReserveRequest request, HttpServletRequest servletRequest) {
-        /*TODO:开始使用时才扣除天卡
-         * TODO:使用结束后扣除时间*/
         User user;
         Table table;
         Reserve reserve_post = new Reserve();
@@ -103,7 +99,7 @@ public class ReserveController {
         } else {
             // 无冲突，订单状态2更新为4
             reserve_post.setReserve_status(4);
-            reserveService.updateReserveStatus(reserve_post);
+                                                                                                                                                reserveService.updateReserveStatus(reserve_post);
         }
         if (!table.getIs_reserve()) {
             table.setIs_reserve(true);
@@ -160,7 +156,6 @@ public class ReserveController {
     @PostMapping("/cancelReserve")
     public Response<Reserve> cancelReserve(@RequestBody @Valid CancelRequest cancelRequest, HttpServletRequest servletRequest) {
         // TODO: is_reserve的修改
-        // TODO: 下机貌似可以用这里的代码
         User user = new User();
         Integer code = userService.judgeUser(servletRequest, user);
         if (code != 0) {
@@ -190,7 +185,7 @@ public class ReserveController {
     @ApiOperation(value = "useTable", notes = "使用桌子（有没有预定过都可以）," +
             "Tips:请求码根据用户的预定情况来，订单开始时间是“现在”，结束时间 min(下班时间, VIP时间, 下一个别人的预定的开始时间（通过getValidReserve获得,最好使用旧的，报错了再请求新数据）)，不需要用户输入，如果是后两者情况需要提醒用户，否则影响用户体验")
     public Response<List<Reserve>> useTable(@RequestBody @Valid ReserveRequest request, HttpServletRequest servletRequest) {
-        // TODO: useTable, 可以使用未来的时间段
+        // TODO: useTable
         /*  创建一个待确认的预定，开始时间是现在，结束时间 min(下班时间, VIP时间, 下一个预定时间，时长卡剩余时间，天卡),交给前端吧
          * 用户可以预定一个时间，然后再使用一个时间
          * 使用 List<Reserve> reserves = reserveService.selectConflictingReserve()判断冲突
@@ -215,8 +210,8 @@ public class ReserveController {
             return Response.fail(code);
         }
         Integer status = user.getUser_status();
-        if (status == 1 || status == 2) {
-            return Response.fail(-23);
+        if (status == 1 || status == 2 || status == 3 || status == 4) {
+            return Response.fail(-4);
         }
         code = reserveService.judgeUseTime(reserve_post, user, request.getCode());
         if (code != 0) {
@@ -228,8 +223,9 @@ public class ReserveController {
         }
         if (table.getIs_using()) {
             return Response.fail(-6); // 正在被使用
+        }else {
+            table.setIs_using(true);
         }
-        Integer reserve_id = null;
         if (status == 3 || status == 4) {
             List<Reserve> reserves = reserveService.searchReserveByOpenId(user.getOpenid());
             if (reserves.size() == 0) {
@@ -299,10 +295,7 @@ public class ReserveController {
             reserve_post.setReserve_status(3);
             reserveService.updateReserveStatus(reserve_post);
         }
-        if (!table.getIs_using()) {
-            table.setIs_using(true);
-            tableService.updateTableReserveState(table);
-        }
+        tableService.updateTableUseState(table);
         userService.updateUserState(user);
         List<Reserve> l = new ArrayList<>();
         l.add(reserve_post);
@@ -355,7 +348,7 @@ public class ReserveController {
             Response.fail(-31, table);
             return Response.fail(-31);
         }
-        table.setIs_using(true);
+        table.setIs_using(false);
         // 修改订单状态
         Timestamp now = new Timestamp(new Date().getTime());
         reserve.setReserve_end(now);
@@ -363,18 +356,18 @@ public class ReserveController {
         if (user.getUser_status() == 1) {
             Long useTime = (reserve.getReserve_end().getTime() - reserve.getReserve_start().getTime()) / 1000;
             Long left = user.getVip_time() - useTime;
-            Integer t = left.intValue();
+            Integer t = left.intValue(); // Long => Integer
             user.setVip_time(t);
             user.setUser_status(0);
         } else if (user.getUser_status() == 2) {
-            user.setVip_daypass(user.getVip_daypass() - 1);
+//            user.setVip_daypass(user.getVip_daypass() - 1); // 使用天卡的时候不应该-1，应该是在下班的时候数据库自动-1
             user.setUser_status(5);
         } else {
             return Response.fail(-29);
         }
-        userService.updateUserState(user);
-        reserveService.updateReserveStatus(reserve);
-        tableService.updateTableReserveState(table);
+        userService.updateUserStateAndVIPTime(user);
+        reserveService.updateReserveStatusAndTime(reserve);
+        tableService.updateTableUseState(table);
         return Response.success(reserve);
     }
 }

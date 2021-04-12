@@ -10,12 +10,19 @@ import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+import java.util.ResourceBundle;
 
 @Service
 public class ReserveService {
 
     @Resource
     private ReserveMapper reserveMapper;
+
+    private static final Integer MIN_RESERVE_MINUTE = Integer.valueOf(ResourceBundle.getBundle("string").getString("min_reserve_time"));
+    private static final Integer WORK_HOUR = Integer.valueOf(ResourceBundle.getBundle("string").getString("work_hour"));
+    private static final Integer WORK_MINUTE = Integer.valueOf(ResourceBundle.getBundle("string").getString("work_minute"));
+    private static final Integer CLOSING_HOUR = Integer.valueOf(ResourceBundle.getBundle("string").getString("closing_hour"));
+    private static final Integer CLOSING_MINUTE = Integer.valueOf(ResourceBundle.getBundle("string").getString("closing_minute"));
 
 
     public void insertNewReserve(Reserve reserve) {
@@ -53,9 +60,12 @@ public class ReserveService {
         if (-1 != start.compareTo(end)) {
             return -8; // 开始时间必须小于结束时间
         }
+        if (end.getTime() - start.getTime() < MIN_RESERVE_MINUTE * 60 * 1000) {
+            return -32;
+        }
         if (start.getYear() != end.getYear()
                 || start.getMonth() != end.getMonth()
-                || start.getDate() != start.getDate()) {
+                || start.getDate() != end.getDate()) {
             return -19; // 预定必须在同一天
         }
         Timestamp now = new Timestamp(new Date().getTime());
@@ -64,15 +74,28 @@ public class ReserveService {
             // 只能预约现在五分钟前到未来的时间
             return -20;
         }
-        if (false) {
-            // TODO: 不在上班时间内
+        now.setHours(23);
+        now.setMinutes(59);
+        now.setSeconds(59);
+        if (start.getTime() - now.getTime() > 7*24*60*60*1000) {
+            return -34;
         }
-        if (false) {
-            // TODO: 只能预定一周内
+        Date work = new Date(start.getTime()); // 获取预定的同一天
+        work.setHours(WORK_HOUR);
+        work.setMinutes(WORK_MINUTE - 1);
+        work.setSeconds(0);
+        Date close = new Date(start.getTime()); // 获取预定的同一天
+        close.setHours(CLOSING_HOUR);
+        close.setMinutes(CLOSING_MINUTE + 1);
+        close.setSeconds(0);
+        Timestamp w = new Timestamp(work.getTime());
+        Timestamp c = new Timestamp(close.getTime());
+        if (!(start.compareTo(w) >= 0 && end.compareTo(c) <= 0)) {
+            return -33;
         }
-        if (false && user != null) {
+        if (user != null) {
             if (code == null) {
-                return -99;
+                return -35;
             }
             if (code == 0) {
                 // 使用时长
@@ -84,7 +107,7 @@ public class ReserveService {
                 user.setUser_status(3);
             } else if (code == 1) {
                 // 使用天卡
-                if (user.getVip_daypass() < 1) {
+                if (user.getUser_status()!= 5 && user.getVip_daypass() < 1) {
                     return -22; // VIP时长不足
                 }
                 user.setUser_status(4);
@@ -105,8 +128,9 @@ public class ReserveService {
     }
 
     public Integer judgeUseTime(Reserve reserve, User user, Integer code) {
+        // judgeReserveTime会改变user.status
         Integer err = judgeReserveTime(reserve, user, code);
-        if(err != 0){
+        if (err != 0) {
             return err;
         }
         Timestamp now = new Timestamp(new Date().getTime());
@@ -114,10 +138,10 @@ public class ReserveService {
         if (reserve.getReserve_start().compareTo(now) == -1) {
             return -26;
         }
-        if(code == 0){
+        if (code == 0) {
             // 使用时长
             user.setUser_status(1);
-        }else if(code == 1){
+        } else if (code == 1) {
             // 使用天卡
             user.setUser_status(2);
         }
@@ -127,5 +151,9 @@ public class ReserveService {
 
     public List<Reserve> getValidReserve() {
         return reserveMapper.getValidReserve();
+    }
+
+    public void updateReserveStatusAndTime(Reserve reserve) {
+        reserveMapper.updateReserveStatusAndTime(reserve);
     }
 }

@@ -16,9 +16,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 
-/*TODO: 上下机
-*  TODO: 预约过期
-*   TODO: 自动强制结束使用*/
 @RestController
 @Api(tags = "用户接口")
 public class UserController {

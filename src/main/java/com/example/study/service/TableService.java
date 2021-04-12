@@ -37,4 +37,8 @@ public class TableService {
     public List<Table> getAllTables() {
         return tableMapper.selectAllTables();
     }
+
+    public void updateTableUseState(Table table) {
+        tableMapper.updateTableUseState(table);
+    }
 }

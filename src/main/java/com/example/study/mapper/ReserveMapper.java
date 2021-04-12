@@ -37,4 +37,7 @@ public interface ReserveMapper {
 
     @Select("SELECT * FROM reserve_form WHERE reserve_status = 3 or reserve_status = 4 ORDER BY table_id")
     List<Reserve> getValidReserve();
+
+    @Update("UPDATE reserve_form SET reserve_status = #{reserve_status}, reserve_start = #{reserve_start}, reserve_end = #{reserve_end} WHERE reserve_id = #{reserve_id}")
+    void updateReserveStatusAndTime(Reserve reserve);
 }

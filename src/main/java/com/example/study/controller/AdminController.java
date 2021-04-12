@@ -37,8 +37,8 @@ public class AdminController {
     private TableService tableService;
 
     @PostMapping("/admin/rechargeVIP")
+    @ApiOperation(value = "管理员充值VIP", notes = "用户把code生成一个二维码，管理员扫描二维码进行充值，可以用来扣除VIP时间")
     public Response<User> rechargeVIP(@RequestBody AdminRechargeVipRequest request, HttpServletRequest servletRequest) {
-        // TODO: 管理员怎么知道openid 用户的code生成二维码，管理员扫码获得openid
         User admin = new User();
         Integer code = userService.judgeAdmin(servletRequest, admin);
         if(code != 0){

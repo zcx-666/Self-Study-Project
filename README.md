@@ -152,12 +152,18 @@
 
     # 每分钟处理过期预定，目前不更新桌子的借阅状态
     USE study;
-    CREATE EVENT reserve_overdue ON SCHEDULE EVERY 1 MINUTE DO
+    CREATE EVENT reserve_overdue ON SCHEDULE EVERY '1' MINUTE DO
     UPDATE reserve_form, user_form
     SET reserve_form.reserve_status = 1, user_form.user_status = 0 
     WHERE
     (reserve_start + MINUTE ( 30 ) < NOW() OR reserve_form.reserve_end < NOW())
     AND reserve_status = 4 AND reserve_form.openid = user_form.openid;
+
+    # 下班时把天卡生效中的用户（5）改为0，并扣除天卡时间
+    CREATE EVENT `study`.`consum_vip`
+    ON SCHEDULE
+    EVERY '1' DAY STARTS '2021/4/11 23:00:00'
+    DO UPDATE user_form SET user_status = 0, vip_daypass = vip_daypass - 1 WHERE user_status = 5;
 
 
 ## Cookie
@@ -165,16 +171,15 @@
 验证cookie : 通过openid得到session_key,然后加密并验证
 
 ## TODO
-- [ ] 每天下班清理所有使用中的订单
 - [x] 刷新用户信息
 - [ ] 定期转移陈旧的数据，增加数据库的运行效率
 - [ ] 建立索引
-- [ ] 自动处理到时间的使用，修改订单状态、用户状态、用户vip时长
+- [ ] 下班自动处理到时间的使用，修改订单状态、用户状态、用户vip时长（没必要，不做了）
 - [x] 管理员给管理员权限
 - [x] 管理员下机
 - [ ] 天卡推荐座位，**其实前端有了数据可以自己推荐**
 - [x] 时长卡推荐时间(searchTableByTime)
-- [ ] 每天下班清理用户的天卡使用状态
+- [ ] **每天下班清理用户的天卡使用状态**
 - [ ] 数字大小越界测试
 - [x] 预定只能预定同一天
 - [ ] 信用系统（迟到、取消），让前端先做一个吓吓人
@@ -185,10 +190,10 @@
 - [ ] https://developers.weixin.qq.com/community/develop/doc/0006ca988c85587908a9a88c05bc09?_at=1617962069342
 - [ ] Response日志
 ### 问一下
-- [ ] 预定最短、最长时长，如果最短时间<30minutes，还得增加一个数据库自动运行事件
+- [x] 预定最短时间（半小时）
 - [x] 上下班时间(8:00-10:00)
-- [ ] 最远预定时间
-- [ ] 使用自习室的时候能不能预定另一张桌子（使用天卡占领两张桌子）
+- [x] 最远预定时间(一周)
+- [x] 使用自习室的时候能不能预定另一张桌子（使用天卡占领两张桌子）不行
 
 ## 笔记
 ### @Valid

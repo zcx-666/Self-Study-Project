@@ -60,10 +60,10 @@ public class Response<T> {
                 msg = "没有权限";
                 break;
             case -13:
-                msg = "您没有预定过";
+                msg = "您没有预定";
                 break;
             case -14:
-                msg = "该订单已使用或过期";
+                msg = "该订单不可取消";
                 break;
             case -15:
                 msg = "订单不存在";
@@ -78,13 +78,13 @@ public class Response<T> {
                 msg = "桌子存在预定";
                 break;
             case -19:
-                msg = "必须在同一天";
+                msg = "开始、结束时间必须在同一天";
                 break;
             case -20:
                 msg = "时间太早了";
                 break;
             case -21:
-                msg = "预定时长过短";
+                msg = "预定时长必须大于40分钟";
                 break;
             case -22:
                 msg = "余额不足";
@@ -115,6 +115,18 @@ public class Response<T> {
                 break;
             case -31:
                 msg = "桌子不在使用中";
+                break;
+            case -32:
+                msg = "预定时长必须大于40分钟";
+                break;
+            case -33:
+                msg = "不在上班时间";
+                break;
+            case -34:
+                msg = "只能预定一周内的时间";
+                break;
+            case -35:
+                msg = "judgeReserveTime方法参数错误";
                 break;
             default:
                 msg = "未知的错误代码";

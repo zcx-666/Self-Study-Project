@@ -26,4 +26,7 @@ public interface TableMapper {
 
     @Select("SELECT * FROM table_form")
     List<Table> selectAllTables();
+
+    @Update("UPDATE table_form SET is_using=#{is_using} WHERE table_id=#{table_id}")
+    void updateTableUseState(Table table);
 }

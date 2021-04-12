@@ -97,7 +97,6 @@ public class TableController {
 
     /*@GetMapping("/deleteTable")
     @ApiOperation(value = "删除桌子", notes = "不建议使用")
-    // TODO: 管理员
     public Response<Integer> deleteTable(@RequestParam Integer table_id, HttpServletRequest request){
         User admin = new User();
         Integer code = userService.judgeAdmin(request, admin);

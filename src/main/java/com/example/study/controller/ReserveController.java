@@ -175,8 +175,10 @@ public class ReserveController {
             return Response.fail(-14);
         }
         reserve.setReserve_status(5);
-        user.setUser_status(0);
-        userService.updateUserState(user);
+        if(user.getUser_status() != 5){
+            user.setUser_status(0);
+            userService.updateUserState(user);
+        }
         reserveService.updateReserveStatus(reserve);
         return Response.success(reserve);
     }

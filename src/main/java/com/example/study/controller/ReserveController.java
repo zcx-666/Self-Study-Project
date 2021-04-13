@@ -16,7 +16,6 @@ import com.example.study.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -54,7 +53,7 @@ public class ReserveController {
             reserve_post.setReserve_start(TimeUtils.dateToTimeStamp(request.getReserve_start()));
             reserve_post.setReserve_end(TimeUtils.dateToTimeStamp(request.getReserve_end()));
         } catch (ParseException e) {
-            e.printStackTrace();
+            log.error("非法的时间格式");
             return Response.fail(-10); // 非法的时间格式
         }
         user = userService.selectUserByCookie(servletRequest);
@@ -105,7 +104,7 @@ public class ReserveController {
             table.setIs_reserve(true);
             tableService.updateTableReserveState(table);
         }
-        userService.updateUserState(user);
+        userService.updateUserReserveState(user);
         List<Reserve> l = new ArrayList<>();
         l.add(reserve_post);
         return Response.success(l);
@@ -177,7 +176,7 @@ public class ReserveController {
         reserve.setReserve_status(5);
         if(user.getUser_status() != 5){
             user.setUser_status(0);
-            userService.updateUserState(user);
+            userService.updateUserReserveState(user);
         }
         reserveService.updateReserveStatus(reserve);
         return Response.success(reserve);
@@ -187,7 +186,6 @@ public class ReserveController {
     @ApiOperation(value = "useTable", notes = "使用桌子（有没有预定过都可以）," +
             "Tips:请求码根据用户的预定情况来，订单开始时间是“现在”，结束时间 min(下班时间, VIP时间, 下一个别人的预定的开始时间（通过getValidReserve获得,最好使用旧的，报错了再请求新数据）)，不需要用户输入，如果是后两者情况需要提醒用户，否则影响用户体验")
     public Response<List<Reserve>> useTable(@RequestBody @Valid ReserveRequest request, HttpServletRequest servletRequest) {
-        // TODO: useTable
         /*  创建一个待确认的预定，开始时间是现在，结束时间 min(下班时间, VIP时间, 下一个预定时间，时长卡剩余时间，天卡),交给前端吧
          * 用户可以预定一个时间，然后再使用一个时间
          * 使用 List<Reserve> reserves = reserveService.selectConflictingReserve()判断冲突
@@ -298,7 +296,7 @@ public class ReserveController {
             reserveService.updateReserveStatus(reserve_post);
         }
         tableService.updateTableUseState(table);
-        userService.updateUserState(user);
+        userService.updateUserReserveState(user);
         List<Reserve> l = new ArrayList<>();
         l.add(reserve_post);
         return Response.success(l);
@@ -371,5 +369,19 @@ public class ReserveController {
         reserveService.updateReserveStatusAndTime(reserve);
         tableService.updateTableUseState(table);
         return Response.success(reserve);
+    }
+
+    @GetMapping("/tt")
+    public void tt(){
+        Reserve reserve = new Reserve();
+//        reserve.setReserve_id(-1);
+        reserve.setReserve_status(0);
+        reserve.setReserve_start(new Timestamp(new Date().getTime()));
+        reserve.setReserve_end(new Timestamp(new Date().getTime()));
+        reserve.setTable_id(1);
+        reserve.setOpenid("zcx");
+        System.out.println(reserve);
+        reserveService.insertNewReserve(reserve);
+        System.out.println(reserve);
     }
 }

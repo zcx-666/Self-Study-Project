@@ -2,16 +2,21 @@
 ## 表结构
     CREATE DATABASE study;
 ### 用户表 - user_form
-| 名字        | 类型     |
-| ----------- | -------- |
-| openid🔑     | char     |
-| session_key | varchar  |
-| avatar      | varchar  |
-| cookie      | varchar  |
-| vip_daypass | smallint |
-| vip_time    | int      |
-| user_status | tinyint  |
-| isadmin     | tinyint  |
+| 名字           | 类型     |
+| -------------- | -------- |
+| openid🔑        | char     |
+| session_key    | varchar  |
+| avatar         | varchar  |
+| cookie         | varchar  |
+| vip_daypass    | smallint |
+| vip_time       | int      |
+| isadmin        | tinyint  |
+| reserve_status | tinyint  |
+| using_status   | tinyint  |
+| limit_day      | smallint |
+| limit_time     | int      |
+| limit_start    | datetime |
+| limit_end      | datetime |
     USE study;
     CREATE TABLE user_form
     (
@@ -21,7 +26,6 @@
         cookie varchar(100),
         vip_daypass smallint,
         vip_time int,
-        user_status tinyint,
         isadmin tinyint,
         PRIMARY KEY(openid)
     );
@@ -35,6 +39,7 @@
 | 3        | 已使用时长预定                     |
 | 4        | 已使用天卡预定                     |
 | 5        | 正在使用天卡，但是没有在使用自习室 |
+| 6        | 天卡使用中，没有在使用，且有预定   |
 
 ### 自习桌表 - table_form
 | 名字       | 类型    |
@@ -189,6 +194,8 @@
 - [ ] 把useTableRequest改成子类
 - [ ] https://developers.weixin.qq.com/community/develop/doc/0006ca988c85587908a9a88c05bc09?_at=1617962069342
 - [ ] Response日志
+- [ ] JWT认证，负载带cookie好了
+- [ ] 修改MySql代码
 ### 问一下
 - [x] 预定最短时间（半小时）
 - [x] 上下班时间(8:00-10:00)
@@ -290,6 +297,13 @@
 
 ### MySql定时任务
 [教程链接][3]
+
+### SpringBoot自带Slf4j打印Mybatis的SQL语句
+aplication.yml:  
+
+    mybatis:
+        configuration:
+            log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 设置打印sql语句
 
 
 

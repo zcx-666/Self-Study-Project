@@ -26,6 +26,7 @@ public class ReserveService {
 
 
     public void insertNewReserve(Reserve reserve) {
+        reserve.setCreate_time(new Timestamp(new Date().getTime()));
         reserveMapper.insertNewReserve(reserve);
     }
 

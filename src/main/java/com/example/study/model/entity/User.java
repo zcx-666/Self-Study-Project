@@ -12,7 +12,7 @@ public class User implements Serializable {
     @JsonIgnore
     private String openid;
 
-    @ApiModelProperty("0.无状态 1.正在使用时长自习 2.正在使用天卡自习 3.已使用时长预定 4.已使用天卡预定 5.正在使用天卡，但是没有在使用自习室")
+    @ApiModelProperty("0.无状态 1.正在使用时长自习 2.正在使用天卡自习 3.已使用时长预定 4.已使用天卡预定 5.正在使用天卡，但是没有在使用自习室 6.天卡生效中")
     private Integer user_status = 0;
 
     private Boolean isadmin = false;

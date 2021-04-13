@@ -3,15 +3,19 @@ package com.example.study;
 
 import com.example.study.model.entity.Reserve;
 import com.example.study.model.entity.User;
+import com.example.study.service.ReserveService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
+import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,6 +24,7 @@ import java.util.ResourceBundle;
 
 @Data
 @Slf4j
+//@SpringBootTest
 class StudyApplicationTests {
     private static final Integer MIN_RESERVE_MINUTE = Integer.valueOf(ResourceBundle.getBundle("string").getString("min_reserve_time"));
     private static final Integer WORK_HOUR = Integer.valueOf(ResourceBundle.getBundle("string").getString("work_hour"));
@@ -49,16 +54,6 @@ class StudyApplicationTests {
 
     @Test
     void pp() {
-        Timestamp a = new Timestamp(new Date().getTime());
-        /*System.out.println(a);
-        a.setDate(a.getDate() + 1);*/
-        System.out.println(a);
-        a.setHours(23);
-        System.out.println(a);
-        a.setMinutes(59);
-        System.out.println(a);
-        a.setSeconds(59);
-        System.out.println(a);
 
     }
 

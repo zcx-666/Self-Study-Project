@@ -39,4 +39,8 @@ public interface UserMapper {
 
     @Update("UPDATE user_form SET vip_daypass=#{vip_daypass}, vip_time=#{vip_time}, user_status=#{user_status} WHERE openid=#{openid}")
     void updateUserReserveStateAndVIPTime(User user);
+
+
+    @Update("UPDATE user_form SET")
+    void updateUser(User user);
 }

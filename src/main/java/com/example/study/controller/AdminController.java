@@ -112,7 +112,7 @@ public class AdminController {
             return Response.fail(-16);
         }
         user.setIsadmin(true);
-        userService.updateUserState(user);
+        userService.giveAuthority(user);
         return Response.success(user);
     }
 
@@ -197,7 +197,8 @@ public class AdminController {
         } else {
             return Response.fail(-29);
         }
-        userService.updateUserState(user);
+        // TODO: 更新预定状态、VIP时间
+        userService.updateUserStateAndVIPTime(user);
         reserveService.updateReserveStatus(reserve);
         tableService.updateTableReserveState(table);
         return Response.success(reserve);

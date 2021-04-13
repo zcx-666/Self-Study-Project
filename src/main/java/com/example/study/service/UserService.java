@@ -124,7 +124,7 @@ public class UserService {
     }
 
 
-    public void updateUserState(User user) {
+    public void updateUserReserveState(User user) {
         userMapper.updateUserReserveState(user);
     }
 
@@ -161,5 +161,14 @@ public class UserService {
 
     public void updateUserStateAndVIPTime(User user) {
         userMapper.updateUserReserveStateAndVIPTime(user);
+    }
+
+    public void giveAuthority(User user) {
+        userMapper.updateIsAdmin(user);
+    }
+
+    public void updateUser(User user){
+        // 通过openid更新用户的所有数据
+        userMapper.updateUser(user);
     }
 }

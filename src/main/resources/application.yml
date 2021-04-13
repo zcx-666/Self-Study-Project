@@ -21,3 +21,6 @@ mybatis:
   mapper-locations:
     classpath:com.example.study.mapper/*.xml
 
+#  configuration:
+#     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 设置打印sql语句
+

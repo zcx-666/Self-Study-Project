@@ -90,9 +90,9 @@ public class UserController {
     @ApiOperation(value = "刷新用户信息")
     public Response<User> getUserInfoByCookie(HttpServletRequest request){
         User user = new User();
-        Integer code = userService.judgeUser(request, user);
-        if(code != 0){
-            return Response.fail(code);
+        Response errRes = userService.judgeUser(request, user);
+        if(errRes != null){
+            return errRes;
         }
         return Response.success(user);
     }

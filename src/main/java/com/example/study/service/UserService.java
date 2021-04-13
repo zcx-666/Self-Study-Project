@@ -138,25 +138,26 @@ public class UserService {
         userMapper.insertVIPRecord(wechat_pay_id, vipDay, vipTime, user.getOpenid());
     }
 
-    public Integer judgeUser(HttpServletRequest request, User user) {
+    public Response judgeUser(HttpServletRequest request, User user) {
+        // 可以改成user的公共方法
         User user1 = selectUserByCookie(request);
         if (user1 == null) {
-            Response.fail(-1, request.getCookies());
-            return -1;
+
+            return Response.fail(-1, request.getCookies());
         }
         user.copyUser(user1);
-        return 0;
+        return null;
     }
 
-    public Integer judgeAdmin(HttpServletRequest request, User admin) {
-        Integer code = judgeUser(request, admin);
-        if (code != 0) {
-            return code;
+    public Response judgeAdmin(HttpServletRequest request, User admin) {
+        Response errRes = judgeUser(request, admin);
+        if (errRes != null) {
+            return errRes;
         }
         if (!admin.getIsadmin()) {
-            return -12;
+            return Response.fail(-12);
         }
-        return 0;
+        return null;
     }
 
     public void updateUserStateAndVIPTime(User user) {

@@ -40,9 +40,9 @@ public class AdminController {
     @ApiOperation(value = "管理员充值VIP", notes = "用户把code生成一个二维码，管理员扫描二维码进行充值，可以用来扣除VIP时间")
     public Response<User> rechargeVIP(@RequestBody AdminRechargeVipRequest request, HttpServletRequest servletRequest) {
         User admin = new User();
-        Integer code = userService.judgeAdmin(servletRequest, admin);
-        if(code != 0){
-            return Response.fail(code);
+        Response errRes = userService.judgeAdmin(servletRequest, admin);
+        if(errRes != null){
+            return errRes;
         }
         String url = "https://api.weixin.qq.com/sns/jscode2session"; // code换openid和session_key
         JSONObject res;
@@ -85,9 +85,9 @@ public class AdminController {
     @PostMapping("/admin/giveAuthority")
     public Response<User> giveAuthority(LoginRequest loginRequest, HttpServletRequest request){
         User admin = new User();
-        Integer code = userService.judgeAdmin(request, admin);
-        if(code != 0){
-            return Response.fail(code);
+        Response errRes = userService.judgeAdmin(request, admin);
+        if(errRes != null){
+            return errRes;
         }
 
         String url = "https://api.weixin.qq.com/sns/jscode2session"; // code换openid和session_key
@@ -120,9 +120,9 @@ public class AdminController {
     @ApiOperation(value = "管理员获得自己的Openid")
     public Response<String> getOpenidByCookie(HttpServletRequest request){
         User admin = new User();
-        Integer code = userService.judgeAdmin(request, admin);
-        if(code != 0){
-            return Response.fail(code);
+        Response errRes = userService.judgeAdmin(request, admin);
+        if(errRes != null){
+            return errRes;
         }else {
             return Response.success(admin.getOpenid());
         }
@@ -132,9 +132,9 @@ public class AdminController {
     @ApiOperation(value = "管理员通过用户提供的code获得Openid")
     public Response<String> getOpenidByCode(LoginRequest loginRequest, HttpServletRequest request){
         User admin = new User();
-        Integer code = userService.judgeAdmin(request, admin);
-        if(code != 0){
-            return Response.fail(code);
+        Response errRes = userService.judgeAdmin(request, admin);
+        if(errRes != null){
+            return errRes;
         }else {
             String url = "https://api.weixin.qq.com/sns/jscode2session"; // code换openid和session_key
             JSONObject res;
@@ -159,9 +159,9 @@ public class AdminController {
     @PostMapping("/admin/finishUse")
     public Response<Reserve> finishUse(@RequestBody @Valid FinishRequest finishRequest, HttpServletRequest servletRequest){
         User admin = new User();
-        Integer code = userService.judgeUser(servletRequest, admin);
-        if (code != 0) {
-            return Response.fail(code);
+        Response errRes = userService.judgeUser(servletRequest, admin);
+        if (errRes != null) {
+            return errRes;
         }
 
         // 和普通一样

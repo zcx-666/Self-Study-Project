@@ -193,7 +193,7 @@
 - [ ] 点击太快了，休息一下
 - [ ] 把useTableRequest改成子类
 - [ ] https://developers.weixin.qq.com/community/develop/doc/0006ca988c85587908a9a88c05bc09?_at=1617962069342
-- [ ] Response日志
+- [ ] Response日志，把返回错误代码的部分改成返回Response.fail
 - [ ] JWT认证，负载带cookie好了
 - [ ] 修改MySql代码
 ### 问一下

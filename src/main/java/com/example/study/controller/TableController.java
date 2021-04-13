@@ -83,9 +83,9 @@ public class TableController {
     @GetMapping("/getAllTables")
     public Response<List<Table>> getAllTables(HttpServletRequest servletRequest) {
         User user = new User();
-        Integer code = userService.judgeUser(servletRequest, user);
-        if (code != 0) {
-            return Response.fail(code);
+        Response errRes = userService.judgeUser(servletRequest, user);
+        if (errRes != null) {
+            return errRes;
         }
         List<Table> l = tableService.getAllTables();
         if (l == null || l.size() == 0) {

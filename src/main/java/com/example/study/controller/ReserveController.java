@@ -46,7 +46,7 @@ public class ReserveController {
 
     @PostMapping("/reserve")
     private Response<List<Reserve>> reserveTable(@RequestBody @Valid ReserveRequest request, HttpServletRequest servletRequest) {
-        User user;
+        User user = new User();
         Table table;
         Reserve reserve_post = new Reserve();
         try {
@@ -56,10 +56,11 @@ public class ReserveController {
             log.error("非法的时间格式");
             return Response.fail(-10); // 非法的时间格式
         }
-        user = userService.selectUserByCookie(servletRequest);
-        if (user == null) {
-            return Response.fail(-1); // 未登录
+        Response errRes = userService.judgeUser(servletRequest, user);
+        if(errRes != null){
+            return errRes;
         }
+
         Integer status = user.getUser_status();
         if (status == 3 || status == 4 || status == 1 || status == 2) {
             return Response.fail(-4);
@@ -133,9 +134,9 @@ public class ReserveController {
     @ApiOperation(value = "searchTableSchedule（不推荐使用）", notes = "查询所有桌子的所有状态的订单，如果桌子没有订单，则除了table_id外都为空(不推荐使用，推荐使用/getValidReserve)")
     public Response<List<Reserve>> searchTableSchedule(HttpServletRequest servletRequest) {
         User user = new User();
-        Integer code = userService.judgeUser(servletRequest, user);
-        if (code != 0) {
-            return Response.fail(code);
+        Response errRes = userService.judgeUser(servletRequest, user);
+        if (errRes != null) {
+            return errRes;
         }
         return Response.success(reserveService.searchTableSchedule());
     }
@@ -144,9 +145,9 @@ public class ReserveController {
     @ApiOperation(value = "获得用户的所有订单")
     public Response<List<Reserve>> searchReserveByCookie(HttpServletRequest request) {
         User user = new User();
-        Integer code = userService.judgeUser(request, user);
-        if (code != 0) {
-            return Response.fail(code);
+        Response errRes = userService.judgeUser(request, user);
+        if (errRes != null) {
+            return errRes;
         }
         List<Reserve> reserves = reserveService.searchReserveByOpenId(user.getOpenid());
         return Response.success(reserves);
@@ -156,8 +157,8 @@ public class ReserveController {
     public Response<Reserve> cancelReserve(@RequestBody @Valid CancelRequest cancelRequest, HttpServletRequest servletRequest) {
         // TODO: is_reserve的修改
         User user = new User();
-        Integer code = userService.judgeUser(servletRequest, user);
-        if (code != 0) {
+        Response errRes = userService.judgeUser(servletRequest, user);
+        if (errRes != null) {
             return Response.fail(0);
         }
         if (user.getUser_status() != 4 && user.getUser_status() != 3) {
@@ -205,15 +206,15 @@ public class ReserveController {
             e.printStackTrace();
             return Response.fail(-10); // 非法的时间格式
         }
-        Integer code = userService.judgeUser(servletRequest, user);
-        if (code != 0) {
-            return Response.fail(code);
+        Response errRes = userService.judgeUser(servletRequest, user);
+        if (errRes != null) {
+            return errRes;
         }
         Integer status = user.getUser_status();
         if (status == 1 || status == 2 || status == 3 || status == 4) {
             return Response.fail(-4);
         }
-        code = reserveService.judgeUseTime(reserve_post, user, request.getCode());
+        Integer code = reserveService.judgeUseTime(reserve_post, user, request.getCode());
         if (code != 0) {
             return Response.fail(code);
         }
@@ -306,9 +307,9 @@ public class ReserveController {
     @ApiOperation(value = "/getValidReserve", notes = "获得所有正在使用、已预定的订单")
     public Response<List<Reserve>> getValidReserve(HttpServletRequest servletRequest) {
         User user = new User();
-        Integer code = userService.judgeUser(servletRequest, user);
-        if (code != 0) {
-            return Response.fail(code);
+        Response errRes = userService.judgeUser(servletRequest, user);
+        if (errRes != null) {
+            return errRes;
         }
         return Response.success(reserveService.getValidReserve());
     }
@@ -329,9 +330,9 @@ public class ReserveController {
          * 在数据库中更新reserve、table和user
          * */
         User user = new User();
-        Integer code = userService.judgeUser(servletRequest, user);
-        if (code != 0) {
-            return Response.fail(code);
+        Response errRes = userService.judgeUser(servletRequest, user);
+        if (errRes != null) {
+            return errRes;
         }
         Reserve reserve = reserveService.searchReserveById(finishRequest.getReserve_id());
         Table table = tableService.selectTableByTableId(reserve.getTable_id());

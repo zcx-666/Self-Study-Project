@@ -42,4 +42,14 @@ public class User implements Serializable {
         this.setSession_key(user.getSession_key());
         this.setCookie(user.getCookie());
     }
+
+    public Boolean isReserved(){
+        // TODO: isReserve
+        return true;
+    }
+
+    public Boolean isUsing(){
+        // TODO: isUsing
+        return true;
+    }
 }

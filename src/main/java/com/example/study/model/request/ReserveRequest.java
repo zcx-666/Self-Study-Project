@@ -8,6 +8,8 @@ import java.sql.Timestamp;
 
 @Data
 public class ReserveRequest {
+    public static final int TIME = 0; // 时长卡
+    public static final int DAY = 1; // 次卡
     @NotNull
     @ApiModelProperty("预定开始时间\"yyyy-MM-dd hh:mm:ss\"")
     private String reserve_start;
@@ -17,7 +19,7 @@ public class ReserveRequest {
     private String reserve_end;
 
     @NotNull
-    private Integer table_id;
+    private int table_id;
 
     @NotNull
     @ApiModelProperty("0.使用时长；1.使用天卡")

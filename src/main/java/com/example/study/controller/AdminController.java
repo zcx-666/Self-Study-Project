@@ -164,39 +164,34 @@ public class AdminController {
             return errRes;
         }
 
-        // 和普通一样
         Reserve reserve = reserveService.searchReserveById(finishRequest.getReserve_id());
         Table table = tableService.selectTableByTableId(reserve.getTable_id());
         User user = userService.selectUserByOpenId(reserve.getOpenid());
         if (reserve == null) {
-            return Response.fail(-15);
+            return Response.fail(-15); // 订单不存在
         }
-        if (!reserve.getOpenid().equals(user.getOpenid())) {
-            return Response.fail(-28);
-        }
-        if (reserve.getReserve_status() != 3) {
+        if (reserve.getReserve_status() != Reserve.USING) {
             return Response.fail(-30);
         }
         if(!table.getIs_using()){
             Response.fail(-31, table);
             return Response.fail(-31);
         }
-        table.setIs_using(true);
+        table.setIs_using(false);
         Timestamp now = new Timestamp(new Date().getTime());
         reserve.setReserve_end(now);
-        reserve.setReserve_status(0);
-        if (user.getUser_status() == 1) {
+        reserve.setReserve_status(Reserve.FINISH);
+        if (user.getUsing_status() == User.TIME) {
             Long useTime = (reserve.getReserve_end().getTime() - reserve.getReserve_start().getTime()) / 1000;
             Long left = user.getVip_time() - useTime;
-            Integer t = left.intValue();
+            int t = left.intValue();
             user.setVip_time(t);
-            user.setUser_status(0);
-        } else if (user.getUser_status() == 2) {
-            user.setVip_daypass(user.getVip_daypass() - 1);
-            user.setUser_status(5);
+        } else if (user.getUsing_status() == User.DAY) {
+            // 使用天卡的话什么都不用管，直接取消就好了，反正肯定已经是生效状态，时间也在使用的时候扣了
         } else {
             return Response.fail(-29);
         }
+        user.setUsing_status(User.NONE);
         // TODO: 更新预定状态、VIP时间
         userService.updateUserStateAndVIPTime(user);
         reserveService.updateReserveStatus(reserve);

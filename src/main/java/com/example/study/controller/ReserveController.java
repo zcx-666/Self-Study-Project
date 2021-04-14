@@ -53,38 +53,25 @@ public class ReserveController {
             reserve_post.setReserve_start(TimeUtils.dateToTimeStamp(request.getReserve_start()));
             reserve_post.setReserve_end(TimeUtils.dateToTimeStamp(request.getReserve_end()));
         } catch (ParseException e) {
-            log.error("非法的时间格式");
             return Response.fail(-10); // 非法的时间格式
         }
         Response errRes = userService.judgeUser(servletRequest, user);
-        if(errRes != null){
+        if (errRes != null) {
             return errRes;
         }
 
-        Integer status = user.getUser_status();
-        if (status == 3 || status == 4 || status == 1 || status == 2) {
+        if (user.isReserved()) {
             return Response.fail(-4);
         }
         Integer code = reserveService.judgeReserveTime(reserve_post, user, request.getCode());
         if (code != 0) {
             return Response.fail(code);
         }
-        /* 在judgeReserveTime中判断
-        if(request.getCode() == 1){
-            user.setUser_status(4);
-        } else if(request.getCode() == 0){
-            user.setUser_status(3);
-        } else {
-            return Response.fail(-11);
-        }*/
         table = tableService.selectTableByTableId(request.getTable_id());
         if (table == null) {
             return Response.fail(-5); // 查无此桌
         }
-        /*if(table.getIs_using()){
-            return Response.fail(-6); // 正在被使用
-        } // 通过订单冲突判断就好了*/
-        reserve_post.setReserve_status(2);
+        reserve_post.setReserve_status(Reserve.CONFIRMING);
         reserve_post.setTable_id(table.getTable_id());
         reserve_post.setOpenid(user.getOpenid());
         reserve_post.setCreate_time(new Timestamp(System.currentTimeMillis()));
@@ -98,8 +85,8 @@ public class ReserveController {
             return Response.fail(-7, reserves); // 冲突
         } else {
             // 无冲突，订单状态2更新为4
-            reserve_post.setReserve_status(4);
-                                                                                                                                                reserveService.updateReserveStatus(reserve_post);
+            reserve_post.setReserve_status(Reserve.WAITINGUSE);
+            reserveService.updateReserveStatus(reserve_post);
         }
         if (!table.getIs_reserve()) {
             table.setIs_reserve(true);
@@ -112,14 +99,13 @@ public class ReserveController {
     }
 
     @PostMapping("/searchTableByTime")
-    @ApiOperation(value = "通过时间查找可用桌子", notes = "不包括用户自己的预定")
+    @ApiOperation(value = "通过时间查找可用桌子", notes = "如果桌子被该用户预定，也会被排除")
     public Response<List<Table>> searchTableByTime(@RequestBody @Valid SearchTableByTimeRequest request) {
         Reserve reserve = new Reserve();
         try {
             reserve.setReserve_start(TimeUtils.dateToTimeStamp(request.getReserve_start()));
             reserve.setReserve_end(TimeUtils.dateToTimeStamp(request.getReserve_end()));
         } catch (ParseException e) {
-            e.printStackTrace();
             return Response.fail(-10);
         }
         Integer code = reserveService.judgeReserveTime(reserve, null, null);
@@ -161,7 +147,7 @@ public class ReserveController {
         if (errRes != null) {
             return Response.fail(0);
         }
-        if (user.getUser_status() != 4 && user.getUser_status() != 3) {
+        if (!user.isReserved()) {
             return Response.fail(-13);
         }
         Reserve reserve = reserveService.searchReserveById(cancelRequest.getReserve_id());
@@ -171,14 +157,12 @@ public class ReserveController {
         if (!reserve.getOpenid().equals(user.getOpenid())) {
             return Response.fail(-28);
         }
-        if (reserve.getReserve_status() != 4) {
+        if (reserve.getReserve_status() != Reserve.WAITINGUSE) {
             return Response.fail(-14);
         }
-        reserve.setReserve_status(5);
-        if(user.getUser_status() != 5){
-            user.setUser_status(0);
-            userService.updateUserReserveState(user);
-        }
+        reserve.setReserve_status(Reserve.CANCEL);
+        user.setReserve_status(User.NONE);
+        userService.updateUserReserveState(user);
         reserveService.updateReserveStatus(reserve);
         return Response.success(reserve);
     }
@@ -210,9 +194,8 @@ public class ReserveController {
         if (errRes != null) {
             return errRes;
         }
-        Integer status = user.getUser_status();
-        if (status == 1 || status == 2 || status == 3 || status == 4) {
-            return Response.fail(-4);
+        if(user.isUsing()){
+            return Response.fail(-23);
         }
         Integer code = reserveService.judgeUseTime(reserve_post, user, request.getCode());
         if (code != 0) {
@@ -224,10 +207,10 @@ public class ReserveController {
         }
         if (table.getIs_using()) {
             return Response.fail(-6); // 正在被使用
-        }else {
+        } else {
             table.setIs_using(true);
         }
-        if (status == 3 || status == 4) {
+        if (user.isReserved()) {
             List<Reserve> reserves = reserveService.searchReserveByOpenId(user.getOpenid());
             if (reserves.size() == 0) {
                 log.error("用户状态为预定，但是找不到预定数据:{},{}", reserves, user);
@@ -235,7 +218,7 @@ public class ReserveController {
             }
             for (Reserve reserve : reserves) {
                 if (reserve.getReserve_status() == 4) {
-                    // 找到使用中的订单，但是不一定是用户的
+                    // 找到使用中的订单，但是不一定是用户这一次需要的
                     if (!reserve.getTable_id().equals(request.getTable_id())) {
                         List<Reserve> t = new ArrayList<>();
                         t.add(reserve);
@@ -345,7 +328,7 @@ public class ReserveController {
         if (reserve.getReserve_status() != 3) {
             return Response.fail(-30);
         }
-        if(!table.getIs_using()){
+        if (!table.getIs_using()) {
             Response.fail(-31, table);
             return Response.fail(-31);
         }
@@ -373,7 +356,7 @@ public class ReserveController {
     }
 
     @GetMapping("/tt")
-    public void tt(){
+    public void tt() {
         Reserve reserve = new Reserve();
 //        reserve.setReserve_id(-1);
         reserve.setReserve_status(0);

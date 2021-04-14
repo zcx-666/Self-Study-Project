@@ -11,6 +11,13 @@ import java.sql.Timestamp;
 
 @Data
 public class Reserve implements Serializable {
+    public static final int FINISH = 0;
+    public static final int OVERDUE = 1;
+    public static final int CONFIRMING = 2;
+    public static final int USING = 3;
+    public static final int WAITINGUSE = 4;
+    public static final int CANCEL = 5;
+
     private Integer reserve_id;
     @JsonIgnore
     private String openid;
@@ -21,7 +28,7 @@ public class Reserve implements Serializable {
     private Timestamp reserve_end;
 
     @ApiModelProperty(value = "0.订单已完成 1.订单已过期 2.订单待确认（后台） 3.正在使用 4.待使用 5.被取消")
-    private Integer reserve_status;
+    private int reserve_status;
 
     @ApiModelProperty("订单创建时间\"yyyy-MM-dd hh:mm:ss\"")
     private Timestamp create_time;

@@ -2,21 +2,33 @@
 ## 表结构
     CREATE DATABASE study;
 ### 用户表 - user_form
-| 名字           | 类型     |
-| -------------- | -------- |
-| openid🔑        | char     |
-| session_key    | varchar  |
-| avatar         | varchar  |
-| cookie         | varchar  |
-| vip_daypass    | smallint |
-| vip_time       | int      |
-| isadmin        | tinyint  |
-| reserve_status | tinyint  |
-| using_status   | tinyint  |
-| limit_day      | smallint |
-| limit_time     | int      |
-| limit_start    | datetime |
-| limit_end      | datetime |
+openid
+reserve_status
+using_status
+isadmin
+avatar
+vip_daypass
+vip_time
+session_key
+cookie
+is_using_daypass
+overdue_time
+
+| 名字             | 类型     |
+| ---------------- | -------- |
+| openid🔑          | char     |
+| session_key      | varchar  |
+| avatar           | varchar  |
+| cookie           | varchar  |
+| vip_daypass      | smallint |
+| vip_time         | int      |
+| isadmin          | tinyint  |
+| reserve_status   | tinyint  |
+| using_status     | tinyint  |
+| is_using_daypass | tinyint  |
+| overdue_time     | datetime |
+
+
     USE study;
     CREATE TABLE user_form
     (
@@ -27,6 +39,10 @@
         vip_daypass smallint,
         vip_time int,
         isadmin tinyint,
+        reserve_status tinyint,
+        using_status tinyint,
+        is_using_daypass tinyint,
+        overdue_time datetime,
         PRIMARY KEY(openid)
     );
     
@@ -130,10 +146,14 @@
         cookie varchar(100),
         vip_daypass smallint,
         vip_time int,
-        user_status tinyint,
         isadmin tinyint,
+        reserve_status tinyint,
+        using_status tinyint,
+        is_using_daypass tinyint,
+        overdue_time datetime,
         PRIMARY KEY(openid)
     );
+    
     USE study;
     CREATE TABLE table_form
     (
@@ -195,7 +215,11 @@
 - [ ] https://developers.weixin.qq.com/community/develop/doc/0006ca988c85587908a9a88c05bc09?_at=1617962069342
 - [ ] Response日志，把返回错误代码的部分改成返回Response.fail
 - [ ] JWT认证，负载带cookie好了
-- [ ] 修改MySql代码
+- [ ] 修改新的MySql代码
+- [ ] 时长卡到期清零（是否处理负数的情况）
+- [ ] 时长卡有九十天的有效期，如果充值的时长大于剩余时长就刷新有效期，时长卡充值的时候，结束时间为九十天后的下班时间
+### 前端
+- [ ] 预定的时候判断VIP是否足够，时长、次卡
 ### 问一下
 - [x] 预定最短时间（半小时）
 - [x] 上下班时间(8:00-10:00)

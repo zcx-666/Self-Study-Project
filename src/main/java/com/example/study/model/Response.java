@@ -33,7 +33,8 @@ public class Response<T> {
                 msg = "登录失败，服务器断开连接";
                 break;
             case -4:
-                msg = "您已有一项预定或正在使用自习室";
+                // TODO:  msg = "您已有一项预定或正在使用自习室";
+                msg = "您已经预定过了";
                 break;
             case -5:
                 msg = "桌子不存在";
@@ -81,7 +82,7 @@ public class Response<T> {
                 msg = "开始、结束时间必须在同一天";
                 break;
             case -20:
-                msg = "时间太早了";
+                msg = "预定的时间太早了";
                 break;
             case -21:
                 msg = "预定时长必须大于40分钟";

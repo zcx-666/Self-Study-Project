@@ -19,7 +19,7 @@ public interface ReserveMapper {
 
     // TODO: 待测试
     @Select("SELECT * FROM table_form WHERE NOT EXISTS (SELECT reserve_form.table_id FROM reserve_form WHERE ((reserve_status = 3  or reserve_status = 4) AND NOT (reserve_start >= #{reserve_end} OR reserve_end <= #{reserve_start})) AND table_form.table_id = reserve_form.table_id)")
-    List<Table> searchTableByTime(Reserve reserve); // 查找不时间冲突的桌子, 不包括待确认的订单
+    List<Table> searchTableByTime(Reserve reserve); // 查找时间不冲突的桌子, 不包括待确认的订单
 
     @Update("UPDATE reserve_form SET reserve_status = #{reserve_status} WHERE reserve_id = #{reserve_id}")
     void updateReserveStatus(Reserve reserve);

@@ -65,10 +65,10 @@ public class UserController {
 
     @PostMapping("/logout")
     public Response<User> logout(HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
-        User user;
-        user = userService.selectUserByCookie(servletRequest);
-        if (user == null) {
-            return Response.fail(-1);
+        User user = new User();
+        Response errRes = userService.judgeUser(servletRequest, user);
+        if(errRes != null){
+            return errRes;
         }
         userService.deleteUserCookie(servletRequest, servletResponse, user.getOpenid());
         return Response.success(user);
@@ -76,9 +76,13 @@ public class UserController {
 
     @PostMapping("/rechargeVIP")
     public Response<User> rechargeVIP(@RequestBody BuyVipDayRequest buyVipDayRequest, HttpServletRequest servletRequest) {
-        User user = userService.selectUserByCookie(servletRequest);
-        if(user == null){
-            return Response.fail(-1);
+        User user = new User();
+        Response errRes = userService.judgeUser(servletRequest, user);
+        if(errRes != null){
+            return errRes;
+        }
+        if(user.getVip_time() <= buyVipDayRequest.getTime()){
+            user.refreshOverDueTime();
         }
         user.setVip_daypass(user.getVip_daypass() + buyVipDayRequest.getDay());
         user.setVip_time(user.getVip_time() + buyVipDayRequest.getTime());
@@ -86,6 +90,7 @@ public class UserController {
         return Response.success(user);
     }
 
+    // TODO: 做到这里了
     @GetMapping("/getUserInfoByCookie")
     @ApiOperation(value = "刷新用户信息")
     public Response<User> getUserInfoByCookie(HttpServletRequest request){

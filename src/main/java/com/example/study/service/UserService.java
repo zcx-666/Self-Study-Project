@@ -128,10 +128,6 @@ public class UserService {
         userMapper.updateUserReserveState(user);
     }
 
-    public void updateUserIsAdmin(User user) {
-        userMapper.updateIsAdmin(user);
-    }
-
     public void rechargeVIP(User user, String wechat_pay_id, Integer vipDay, Integer vipTime) {
         userMapper.updateUserVIPTime(user);
         //#{wechat_pay_id}, #{vip_daypass}, #{vip_time}, #{openid}
@@ -139,7 +135,7 @@ public class UserService {
     }
 
     public Response judgeUser(HttpServletRequest request, User user) {
-        // 可以改成user的公共方法
+        // TODO: 把返回值改回int
         User user1 = selectUserByCookie(request);
         if (user1 == null) {
 

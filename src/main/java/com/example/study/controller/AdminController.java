@@ -36,6 +36,8 @@ public class AdminController {
     @Resource
     private TableService tableService;
 
+
+    // TODO：充值也要重做
     @PostMapping("/admin/rechargeVIP")
     @ApiOperation(value = "管理员充值VIP", notes = "用户把code生成一个二维码，管理员扫描二维码进行充值，可以用来扣除VIP时间")
     public Response<User> rechargeVIP(@RequestBody AdminRechargeVipRequest request, HttpServletRequest servletRequest) {
@@ -64,6 +66,9 @@ public class AdminController {
         User user = userService.selectUserByOpenId(Openid);
         if(user == null){
             return Response.fail(-16);
+        }
+        if(user.getVip_time() <= request.getVipTime()){
+            user.refreshOverDueTime();
         }
         user.setVip_daypass(user.getVip_daypass() + request.getVipDay());
         user.setVip_time(user.getVip_time() + request.getVipTime());
@@ -159,17 +164,17 @@ public class AdminController {
     @PostMapping("/admin/finishUse")
     public Response<Reserve> finishUse(@RequestBody @Valid FinishRequest finishRequest, HttpServletRequest servletRequest){
         User admin = new User();
-        Response errRes = userService.judgeUser(servletRequest, admin);
+        Response errRes = userService.judgeAdmin(servletRequest, admin);
         if (errRes != null) {
             return errRes;
         }
 
         Reserve reserve = reserveService.searchReserveById(finishRequest.getReserve_id());
-        Table table = tableService.selectTableByTableId(reserve.getTable_id());
-        User user = userService.selectUserByOpenId(reserve.getOpenid());
         if (reserve == null) {
             return Response.fail(-15); // 订单不存在
         }
+        Table table = tableService.selectTableByTableId(reserve.getTable_id());
+        User user = userService.selectUserByOpenId(reserve.getOpenid());
         if (reserve.getReserve_status() != Reserve.USING) {
             return Response.fail(-30);
         }
@@ -178,7 +183,7 @@ public class AdminController {
             return Response.fail(-31);
         }
         table.setIs_using(false);
-        Timestamp now = new Timestamp(new Date().getTime());
+        Timestamp now = new Timestamp(System.currentTimeMillis());
         reserve.setReserve_end(now);
         reserve.setReserve_status(Reserve.FINISH);
         if (user.getUsing_status() == User.TIME) {
@@ -192,7 +197,6 @@ public class AdminController {
             return Response.fail(-29);
         }
         user.setUsing_status(User.NONE);
-        // TODO: 更新预定状态、VIP时间
         userService.updateUserStateAndVIPTime(user);
         reserveService.updateReserveStatus(reserve);
         tableService.updateTableReserveState(table);

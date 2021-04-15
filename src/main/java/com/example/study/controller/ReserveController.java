@@ -59,8 +59,7 @@ public class ReserveController {
         if (errRes != null) {
             return errRes;
         }
-
-        if (user.isReserved()) {
+        if (user.isReserved() || user.isUsing()) {
             return Response.fail(-4);
         }
         Integer code = reserveService.judgeReserveTime(reserve_post, user, request.getCode());
@@ -108,7 +107,7 @@ public class ReserveController {
         } catch (ParseException e) {
             return Response.fail(-10);
         }
-        Integer code = reserveService.judgeReserveTime(reserve, null, null);
+        Integer code = reserveService.judgeTime(reserve);
         if (code != 0) {
             return Response.fail(code);
         }
@@ -169,10 +168,9 @@ public class ReserveController {
 
     @PostMapping("/useTable")
     @ApiOperation(value = "useTable", notes = "使用桌子（有没有预定过都可以）," +
-            "Tips:请求码根据用户的预定情况来，订单开始时间是“现在”，结束时间 min(下班时间, VIP时间, 下一个别人的预定的开始时间（通过getValidReserve获得,最好使用旧的，报错了再请求新数据）)，不需要用户输入，如果是后两者情况需要提醒用户，否则影响用户体验")
+            "Tips:请求码根据用户的预定情况来，没有预定就手动选择，订单开始时间是“现在”，结束时间 min(下班时间, VIP时间, 下一个别人的预定的开始时间（通过getValidReserve获得,最好使用旧的，报错了再请求新数据），该用户预定过的订单的结束时间)，不需要用户输入，如果是后两者情况需要提醒用户，否则影响用户体验")
     public Response<List<Reserve>> useTable(@RequestBody @Valid ReserveRequest request, HttpServletRequest servletRequest) {
         /*  创建一个待确认的预定，开始时间是现在，结束时间 min(下班时间, VIP时间, 下一个预定时间，时长卡剩余时间，天卡),交给前端吧
-         * 用户可以预定一个时间，然后再使用一个时间
          * 使用 List<Reserve> reserves = reserveService.selectConflictingReserve()判断冲突
          * 如果reserves为空则OK
          * 如果reserves不为空则判断长度是否为1，且openid = 自己 and 时间一致（就是使用用户自己的预定的情况，如果迟到了就把开始时间设为当前时间），
@@ -180,9 +178,15 @@ public class ReserveController {
          * 修改user_status、reserve_status，
          * 如果用户正在使用天卡就不用扣钱了*/
 
+        /* 创建一个待确认的预定，开始时间是现在，结束时间 min(下班时间, VIP时间, 下一个预定时间，时长卡剩余时间，天卡),交给前端吧
+         * 如果用户正在使用 => 报错
+         * 如果用户预定过 => 判断桌子是不是同一张、桌子是否被使用（判断冲突应该是可以解决），时间相交则并，否则报错
+         * */
+
         User user = new User();
-        Table table = new Table();
+        Table table;
         Reserve reserve_post = new Reserve();
+        Reserve reserve = new Reserve();
         try {
             reserve_post.setReserve_start(TimeUtils.dateToTimeStamp(request.getReserve_start()));
             reserve_post.setReserve_end(TimeUtils.dateToTimeStamp(request.getReserve_end()));
@@ -194,12 +198,12 @@ public class ReserveController {
         if (errRes != null) {
             return errRes;
         }
-        if(user.isUsing()){
-            return Response.fail(-23);
+        if (user.isUsing()) {
+            return Response.fail(-23); // -23 您正在使用自习室
         }
-        Integer code = reserveService.judgeUseTime(reserve_post, user, request.getCode());
-        if (code != 0) {
-            return Response.fail(code);
+        Integer errCode = reserveService.judgeUseTime(reserve_post, user, request.getCode());
+        if (errCode != 0) {
+            return Response.fail(errCode);
         }
         table = tableService.selectTableByTableId(request.getTable_id());
         if (table == null) {
@@ -211,72 +215,67 @@ public class ReserveController {
             table.setIs_using(true);
         }
         if (user.isReserved()) {
-            List<Reserve> reserves = reserveService.searchReserveByOpenId(user.getOpenid());
-            if (reserves.size() == 0) {
-                log.error("用户状态为预定，但是找不到预定数据:{},{}", reserves, user);
-                return Response.fail(-99);
+            reserve = reserveService.searchWaitingUseReserveByOpenId(user.getOpenid());
+            if (reserve == null) {
+                log.error("用户状态为预定，但是找不到预定数据:{}", user);
+                return Response.fail(-36);
             }
-            for (Reserve reserve : reserves) {
-                if (reserve.getReserve_status() == 4) {
-                    // 找到使用中的订单，但是不一定是用户这一次需要的
-                    if (!reserve.getTable_id().equals(request.getTable_id())) {
-                        List<Reserve> t = new ArrayList<>();
-                        t.add(reserve);
-                        return Response.fail(-25, t);
-                    }
-                    if (reserve_post.getReserve_start().compareTo(reserve.getReserve_end()) == 1 ||
-                            reserve_post.getReserve_end().compareTo(reserve.getReserve_start()) == -1) {
-                        // 不相交
-                        List<Reserve> t = new ArrayList<>();
-                        t.add(reserve);
-                        return Response.fail(-24, t);
-                    } else {
-                        // 相交
-                        if (reserve_post.getReserve_start().compareTo(reserve.getReserve_start()) == 1) {
-                            reserve_post.setReserve_start(reserve.getReserve_start());
-                        }
-                        if (reserve_post.getReserve_end().compareTo(reserve.getReserve_end()) == -1) {
-                            reserve_post.setReserve_end(reserve.getReserve_end());
-                        }
-
-                        if (request.getCode() == 0) {
-                            Timestamp start = reserve_post.getReserve_start();
-                            Timestamp end = reserve_post.getReserve_end();
-                            Long t = (start.getTime() - end.getTime()) / 1000; // 预定时长
-                            Integer vip = user.getVip_time();
-                            if (t > vip) {
-                                return Response.fail(-22); // VIP时长不足
-                            }
-                        }
-                        /*Integer code1 = reserveService.judgeUseTime(reserve_post, null, null);
-                        if(code1 != 0){
-                            return Response.fail(code1);
-                        } 不做判断，因为存在迟到的可能，但是会存在时长卡不足的情况*/
-                    }
-//                    reserve_id = reserve.getReserve_id();
-                    break;
+            if (!reserve.getTable_id().equals(request.getTable_id())) {
+                List<Reserve> t = new ArrayList<>();
+                t.add(reserve);
+                return Response.fail(-25, t);
+            }
+            if (reserve_post.getReserve_start().compareTo(reserve.getReserve_end()) == 1 ||
+                    reserve_post.getReserve_end().compareTo(reserve.getReserve_start()) == -1) {
+                // 不相交
+                List<Reserve> t = new ArrayList<>();
+                t.add(reserve);
+                return Response.fail(-24, t);
+            } else {
+                // 预定时间和使用时间相交，把时间并起来
+                reserve_post.setReserve_id(reserve.getReserve_id());
+                if (reserve_post.getReserve_start().compareTo(reserve.getReserve_start()) == 1) {
+                    reserve_post.setReserve_start(reserve.getReserve_start());
                 }
+                if (reserve_post.getReserve_end().compareTo(reserve.getReserve_end()) == -1) {
+                    reserve_post.setReserve_end(reserve.getReserve_end());
+                }
+                reserve_post.setCreate_time(reserve.getCreate_time());
+                // 并之后的时间可能会导致VIP时长卡不足，但是可以使用，这样会扣成负的，那其实也没有关系，应该不会介意这么点时间的
+                /*if (request.getCode() == ReserveRequest.TIME) {
+                    Timestamp start = reserve_post.getReserve_start();
+                    Timestamp end = reserve_post.getReserve_end();
+                    Long t = (start.getTime() - end.getTime()) / 1000; // 预定时长
+                    Integer vip = user.getVip_time();
+                    if (t > vip) {
+                        return Response.fail(-22); // VIP时长不足
+                    }
+                }*/
             }
         }
-        reserve_post.setReserve_status(2);
+        reserve_post.setReserve_status(Reserve.CONFIRMING);
         reserve_post.setTable_id(table.getTable_id());
         reserve_post.setOpenid(user.getOpenid());
-        reserve_post.setCreate_time(new Timestamp(System.currentTimeMillis()));
-        reserveService.insertNewReserve(reserve_post);
+        if(user.isReserved()){
+            reserveService.updateReserveStatusAndTime(reserve_post);
+        }else {
+            // 如果没有预定过，那创建时间为现在，否则就是之前的时间
+            reserve_post.setCreate_time(new Timestamp(System.currentTimeMillis()));
+            reserveService.insertNewReserve(reserve_post);
+        }
         log.info("新的使用记录:{}", reserve_post);
         List<Reserve> reserves = reserveService.selectConflictingReserve(reserve_post);
         if (reserves.size() > 0) {
-            for (Reserve reserve : reserves) {
-                if (!reserve.getOpenid().equals(user.getOpenid())) {
-                    // 一个人只有一个订单吧，按快了和我没关系，既然不是用户的订单，那就是冲突了
-                    log.info("使用冲突纪录：{}", reserves);
-                    reserveService.deleteReserveById(reserve_post);
-                    return Response.fail(-7, reserves); // 冲突
-                }
+            log.info("使用冲突纪录：{}", reserves);
+            if(user.isReserved()){
+                reserveService.updateReserveStatusAndTime(reserve);
+            }else {
+                reserveService.deleteReserveById(reserve_post);
             }
+            return Response.fail(-7, reserves); // 冲突
         } else {
             // 无冲突，订单状态2更新为3,正在使用
-            reserve_post.setReserve_status(3);
+            reserve_post.setReserve_status(Reserve.WAITINGUSE);
             reserveService.updateReserveStatus(reserve_post);
         }
         tableService.updateTableUseState(table);
@@ -300,7 +299,7 @@ public class ReserveController {
     @PostMapping("/finishUse")
     public Response<Reserve> finishUse(@RequestBody @Valid FinishRequest finishRequest, HttpServletRequest servletRequest) {
         /* 输入订单ID、cookie
-         * 找到订单，判断是否在使用（reserve_status == 3）、openid是否一致，否则报错
+         * 找到订单，判断是否在使用（reserve_status == USING）、openid是否一致，否则报错
          * 找到桌子，判断桌子是否在使用中，不在则报错
          * 把结束时间改成现在（可能存在使用超时，覆盖了下一个预定。会不会出现A先预定了，然后B在A预定时间到前使用了桌子，然后一直使用下去，直到覆盖了A的预定？除非出BUG，不然不会）
          * 把订单状态改成0
@@ -320,35 +319,34 @@ public class ReserveController {
         Reserve reserve = reserveService.searchReserveById(finishRequest.getReserve_id());
         Table table = tableService.selectTableByTableId(reserve.getTable_id());
         if (reserve == null) {
-            return Response.fail(-15);
+            return Response.fail(-15); // 订单不存在
         }
         if (!reserve.getOpenid().equals(user.getOpenid())) {
             return Response.fail(-28);
         }
-        if (reserve.getReserve_status() != 3) {
+        if (reserve.getReserve_status() != Reserve.USING) {
             return Response.fail(-30);
         }
         if (!table.getIs_using()) {
-            Response.fail(-31, table);
+            log.error("找到了使用中的订单，但是桌子并没有在使用中:{},{}",reserve,table);
             return Response.fail(-31);
         }
         table.setIs_using(false);
         // 修改订单状态
-        Timestamp now = new Timestamp(new Date().getTime());
+        Timestamp now = new Timestamp(System.currentTimeMillis());
         reserve.setReserve_end(now);
-        reserve.setReserve_status(0);
-        if (user.getUser_status() == 1) {
+        reserve.setReserve_status(Reserve.FINISH);
+        if (user.getUsing_status() == User.TIME) {
             Long useTime = (reserve.getReserve_end().getTime() - reserve.getReserve_start().getTime()) / 1000;
             Long left = user.getVip_time() - useTime;
             Integer t = left.intValue(); // Long => Integer
             user.setVip_time(t);
-            user.setUser_status(0);
-        } else if (user.getUser_status() == 2) {
-//            user.setVip_daypass(user.getVip_daypass() - 1); // 使用天卡的时候不应该-1，应该是在下班的时候数据库自动-1
-            user.setUser_status(5);
+        } else if (user.getUsing_status() == User.DAY) {
+            // 使用天卡的话什么都不用管，直接取消就好了，反正肯定已经是生效状态，时间也在使用的时候扣了
         } else {
             return Response.fail(-29);
         }
+        user.setUsing_status(User.NONE);
         userService.updateUserStateAndVIPTime(user);
         reserveService.updateReserveStatusAndTime(reserve);
         tableService.updateTableUseState(table);
@@ -357,15 +355,8 @@ public class ReserveController {
 
     @GetMapping("/tt")
     public void tt() {
-        Reserve reserve = new Reserve();
-//        reserve.setReserve_id(-1);
-        reserve.setReserve_status(0);
-        reserve.setReserve_start(new Timestamp(new Date().getTime()));
-        reserve.setReserve_end(new Timestamp(new Date().getTime()));
-        reserve.setTable_id(1);
-        reserve.setOpenid("zcx");
-        System.out.println(reserve);
-        reserveService.insertNewReserve(reserve);
-        System.out.println(reserve);
+        User user = new User();
+        user.setOpenid("1");
+        userService.insertNewUser(user);
     }
 }

@@ -41,4 +41,7 @@ public interface ReserveMapper {
 
     @Update("UPDATE reserve_form SET reserve_status = #{reserve_status}, reserve_start = #{reserve_start}, reserve_end = #{reserve_end} WHERE reserve_id = #{reserve_id}")
     void updateReserveStatusAndTime(Reserve reserve);
+
+    @Select("SELECT * FROM reserve_form WHERE reserve_status = 4 AND openid = #{openid} LIMIT 1")
+    Reserve searchWaitingUseReserveByOpenId(String openid);
 }

@@ -34,10 +34,10 @@ public class User implements Serializable {
 
     @ApiModelProperty("天卡剩余时间（天）")
     private int vip_daypass = 0;
-    @ApiModelProperty("剩余可用时间（秒）")
+    @ApiModelProperty("剩余可用时间（秒），可能是负数，但是过期之后会重置为0")
     private int vip_time = 0;
 
-    @ApiModelProperty("时长卡到期时间\"yyyy-MM-dd hh:mm:ss\"")
+    @ApiModelProperty("时长卡到期时间\"yyyy-MM-dd hh:mm:ss\",当时长卡不生效的是否返回值为null")
     private Timestamp overdue_time;
     @JsonIgnore
     @ApiModelProperty("来自微信官方")
@@ -71,5 +71,11 @@ public class User implements Serializable {
 
     public Boolean isUsing() {
         return using_status != NONE;
+    }
+
+    public void refreshOverDueTime(){
+        Timestamp t = new Timestamp(System.currentTimeMillis());
+        t.setDate(t.getDate() + 90);
+        overdue_time = t;
     }
 }

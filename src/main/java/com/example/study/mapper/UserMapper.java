@@ -5,8 +5,7 @@ import org.apache.ibatis.annotations.*;
 
 @Mapper
 public interface UserMapper {
-//    @Insert("INSERT INTO user_form (openid, reserve_status, using_status, isadmin, avatar, vip_daypass, vip_time, session_key, cookie, is_using_daypass, overdue_time) VALUE (#{openid},#{reserve_status},#{using_status},#{isadmin},#{avatar},#{vip_daypass},#{vip_time},#{session_key},#{cookie},#{is_using_daypass},#{overdue_time})")
-    @Insert("INSERT INTO user_form () VALUE (#{user})")
+    @Insert("INSERT INTO user_form (openid, reserve_status, using_status, isadmin, avatar, vip_daypass, vip_time, session_key, cookie, is_using_daypass, overdue_time) VALUE (#{openid},#{reserve_status},#{using_status},#{isadmin},#{avatar},#{vip_daypass},#{vip_time},#{session_key},#{cookie},#{is_using_daypass},#{overdue_time})")
     void insertNewUser(User user);
 
     @Select("SELECT * FROM user_form WHERE cookie=#{cookie}")
@@ -24,7 +23,7 @@ public interface UserMapper {
     @Update("UPDATE user_form SET user_status=#{user_status} WHERE openid=#{openid}")
     void updateUserReserveState(User user);
 
-    @Update("UPDATE user_form SET vip_daypass=#{vip_daypass}, vip_time=#{vip_time} WHERE openid=#{openid}")
+    @Update("UPDATE user_form SET vip_daypass=#{vip_daypass}, vip_time=#{vip_time},overdue_time=#{overdue_time} WHERE openid=#{openid}")
     void updateUserVIPTime(User user);
 
     @Insert("INSERT INTO recharge_record_form (wechat_pay_id, vip_daypass, vip_time, openid,  create_time) VALUE (#{wechat_pay_id}, #{vip_daypass}, #{vip_time}, #{openid}, current_timestamp)")

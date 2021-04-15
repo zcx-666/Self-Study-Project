@@ -12,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 public class Response<T> {
     @ApiModelProperty("0成功，负数出错")
     private Integer code;
-    @ApiModelProperty("成功为空，出错为json")
     private String msg;
     private T data;
 
@@ -33,8 +32,8 @@ public class Response<T> {
                 msg = "登录失败，服务器断开连接";
                 break;
             case -4:
-                // TODO:  msg = "您已有一项预定或正在使用自习室";
-                msg = "您已经预定过了";
+                // TODO:  msg = "您已经预定过了";
+                msg = "您已有一项预定或正在使用自习室";
                 break;
             case -5:
                 msg = "桌子不存在";
@@ -94,10 +93,10 @@ public class Response<T> {
                 msg = "您正在使用自习室";
                 break;
             case -24:
-                msg = "您预定的时间还没到";
+                msg = "您预定的时间段不是现在。如果想提前入座，请确认在您预定的时间段之前没有其他用户的预定";
                 break;
             case -25:
-                msg = "您预定的不是这张桌子";
+                msg = "您预定的桌子不是这张";
                 break;
             case -26:
                 msg = "时间太晚了";
@@ -128,6 +127,9 @@ public class Response<T> {
                 break;
             case -35:
                 msg = "judgeReserveTime方法参数错误";
+                break;
+            case -36:
+                msg = "用户状态为预定，但是找不到预定数据";
                 break;
             default:
                 msg = "未知的错误代码";

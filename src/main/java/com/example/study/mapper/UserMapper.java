@@ -20,9 +20,6 @@ public interface UserMapper {
     @Select("SELECT * FROM user_form WHERE openid=#{openid}")
     User selectUserByOpenId(@Param("openid") String openid);
 
-    @Update("UPDATE user_form SET user_status=#{user_status} WHERE openid=#{openid}")
-    void updateUserReserveState(User user);
-
     @Update("UPDATE user_form SET vip_daypass=#{vip_daypass}, vip_time=#{vip_time},overdue_time=#{overdue_time} WHERE openid=#{openid}")
     void updateUserVIPTime(User user);
 
@@ -35,10 +32,6 @@ public interface UserMapper {
     @Update("UPDATE user_form SET isadmin=#{isadim} WHERE openid=#{openid}")
     void updateIsAdmin(User user);
 
-    @Update("UPDATE user_form SET vip_daypass=#{vip_daypass}, vip_time=#{vip_time}, user_status=#{user_status} WHERE openid=#{openid}")
-    void updateUserReserveStateAndVIPTime(User user);
-
-
-    @Update("UPDATE user_form SET")
-    void updateUser(User user);
+    @Update("UPDATE user_form SET vip_daypass=#{vip_daypass}, vip_time=#{vip_time}, using_status=#{using_status}, reserve_status=#{reserve_status}, is_using_daypass=#{is_using_daypass} WHERE openid=#{openid}")
+    void updateUserStatus(User user);
 }

@@ -179,6 +179,8 @@ public class ReserveService {
                 user.setVip_daypass(user.getVip_daypass() - 1);
             }
             user.setUsing_status(User.DAY);
+        } else {
+            return -11;
         }
         return 0;
     }

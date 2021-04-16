@@ -47,15 +47,12 @@ overdue_time
     );
     
 #### 状态表
-| 状态代码 | 状态含义                           |
-| -------- | ---------------------------------- |
-| 0        | 无状态                             |
-| 1        | 正在使用时长                       |
-| 2        | 正在使用天卡                       |
-| 3        | 已使用时长预定                     |
-| 4        | 已使用天卡预定                     |
-| 5        | 正在使用天卡，但是没有在使用自习室 |
-| 6        | 天卡使用中，没有在使用，且有预定   |
+| 状态代码 | 状态含义          |
+| -------- | ----------------- |
+| 0        | 无预定/使用       |
+| 1        | 使用时长预定/使用 |
+| 2        | 使用天卡预定/使用 |
+
 
 ### 自习桌表 - table_form
 | 名字       | 类型    |
@@ -63,7 +60,6 @@ overdue_time
 | table_id🔑  | int     |
 | is_reserve | tinyint |
 | is_using   | tinyint |
-
 
     USE study;
     CREATE TABLE table_form
@@ -98,7 +94,6 @@ overdue_time
         reserve_status tinyint,
         PRIMARY KEY(reserve_id)
     );
-- ~~注意！这里的代码顺序很重要，因为mysql返回的datatime类型的数据是TimeStamp类型，所以需要通过构造函数把TimeStamp转换为String，但是这样就覆盖了无参的构造函数，导致mybatis无法通过变量名自动匹配变量。为了保证变量构造正确，需要数据库中的变量顺序和有参构造函数一致。~~
 
 #### 状态表
 | 状态代码 | 状态含义       |
@@ -184,12 +179,17 @@ overdue_time
     (reserve_start + MINUTE ( 30 ) < NOW() OR reserve_form.reserve_end < NOW())
     AND reserve_status = 4 AND reserve_form.openid = user_form.openid;
 
-    # 下班时把天卡生效中的用户（5）改为0，并扣除天卡时间
-    CREATE EVENT `study`.`consum_vip`
+    # 下班时结束用户的天卡生效状态
+    CREATE EVENT `study`.`consume_vip`
     ON SCHEDULE
     EVERY '1' DAY STARTS '2021/4/11 23:00:00'
-    DO UPDATE user_form SET user_status = 0, vip_daypass = vip_daypass - 1 WHERE user_status = 5;
+    DO UPDATE user_form SET is_using_daypass = 0 WHERE is_using_daypass = 1;
 
+    # 每五分钟处理过期的时长卡
+    CREATE EVENT `study`.`vip_overdue`
+    ON SCHEDULE
+    EVERY '5' MINUTE
+    DO UPDATE user_form SET vip_time = 0, overdue_time = null WHERE overdue_time < NOW();
 
 ## Cookie
 创建cookie : openid + session_key ==sha==> cookie  

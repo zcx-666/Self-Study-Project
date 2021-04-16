@@ -22,12 +22,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -91,7 +91,7 @@ public class ReserveController {
             table.setIs_reserve(true);
             tableService.updateTableReserveState(table);
         }
-        userService.updateUserReserveState(user);
+        userService.updateUserStatus(user);
         List<Reserve> l = new ArrayList<>();
         l.add(reserve_post);
         return Response.success(l);
@@ -99,7 +99,12 @@ public class ReserveController {
 
     @PostMapping("/searchTableByTime")
     @ApiOperation(value = "通过时间查找可用桌子", notes = "如果桌子被该用户预定，也会被排除")
-    public Response<List<Table>> searchTableByTime(@RequestBody @Valid SearchTableByTimeRequest request) {
+    public Response<List<Table>> searchTableByTime(@RequestBody @Valid SearchTableByTimeRequest request, HttpServletRequest servletRequest) {
+        User user = new User();
+        Response errRes = userService.judgeUser(servletRequest, user);
+        if(errRes != null){
+            return errRes;
+        }
         Reserve reserve = new Reserve();
         try {
             reserve.setReserve_start(TimeUtils.dateToTimeStamp(request.getReserve_start()));
@@ -161,7 +166,7 @@ public class ReserveController {
         }
         reserve.setReserve_status(Reserve.CANCEL);
         user.setReserve_status(User.NONE);
-        userService.updateUserReserveState(user);
+        userService.updateUserStatus(user);
         reserveService.updateReserveStatus(reserve);
         return Response.success(reserve);
     }
@@ -258,6 +263,7 @@ public class ReserveController {
         reserve_post.setOpenid(user.getOpenid());
         if(user.isReserved()){
             reserveService.updateReserveStatusAndTime(reserve_post);
+            user.setReserve_status(User.NONE);
         }else {
             // 如果没有预定过，那创建时间为现在，否则就是之前的时间
             reserve_post.setCreate_time(new Timestamp(System.currentTimeMillis()));
@@ -275,11 +281,11 @@ public class ReserveController {
             return Response.fail(-7, reserves); // 冲突
         } else {
             // 无冲突，订单状态2更新为3,正在使用
-            reserve_post.setReserve_status(Reserve.WAITINGUSE);
+            reserve_post.setReserve_status(Reserve.USING);
             reserveService.updateReserveStatus(reserve_post);
         }
-        tableService.updateTableUseState(table);
-        userService.updateUserReserveState(user);
+        tableService.updateTableUseStatus(table);
+        userService.updateUserStatus(user);
         List<Reserve> l = new ArrayList<>();
         l.add(reserve_post);
         return Response.success(l);
@@ -347,16 +353,22 @@ public class ReserveController {
             return Response.fail(-29);
         }
         user.setUsing_status(User.NONE);
-        userService.updateUserStateAndVIPTime(user);
+        userService.updateUserStatus(user);
         reserveService.updateReserveStatusAndTime(reserve);
-        tableService.updateTableUseState(table);
+        tableService.updateTableUseStatus(table);
         return Response.success(reserve);
     }
 
     @GetMapping("/tt")
-    public void tt() {
-        User user = new User();
-        user.setOpenid("1");
-        userService.insertNewUser(user);
+    public void tt(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        System.out.println(cookies.toString());
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals("study_cookie")) {
+                System.out.println(cookie);
+                System.out.println(cookie.getValue());
+//                user = userMapper.selectUserByCookie(cookie.getValue());
+            }
+        }
     }
 }

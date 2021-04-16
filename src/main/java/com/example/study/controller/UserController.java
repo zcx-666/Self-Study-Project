@@ -90,7 +90,6 @@ public class UserController {
         return Response.success(user);
     }
 
-    // TODO: 做到这里了
     @GetMapping("/getUserInfoByCookie")
     @ApiOperation(value = "刷新用户信息")
     public Response<User> getUserInfoByCookie(HttpServletRequest request){

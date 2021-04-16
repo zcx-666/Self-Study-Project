@@ -38,7 +38,7 @@ public class TableService {
         return tableMapper.selectAllTables();
     }
 
-    public void updateTableUseState(Table table) {
+    public void updateTableUseStatus(Table table) {
         tableMapper.updateTableUseState(table);
     }
 }

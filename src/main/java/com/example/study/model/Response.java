@@ -81,10 +81,10 @@ public class Response<T> {
                 msg = "开始、结束时间必须在同一天";
                 break;
             case -20:
-                msg = "预定的时间太早了";
+                msg = "预定、使用的时间太早了";
                 break;
             case -21:
-                msg = "预定时长必须大于40分钟";
+                msg = "预定、使用时长必须大于40分钟";
                 break;
             case -22:
                 msg = "余额不足";

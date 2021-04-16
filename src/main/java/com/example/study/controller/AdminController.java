@@ -21,7 +21,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.sql.Timestamp;
-import java.util.Date;
 
 @RestController
 @Api(tags = "管理员接口")
@@ -37,7 +36,6 @@ public class AdminController {
     private TableService tableService;
 
 
-    // TODO：充值也要重做
     @PostMapping("/admin/rechargeVIP")
     @ApiOperation(value = "管理员充值VIP", notes = "用户把code生成一个二维码，管理员扫描二维码进行充值，可以用来扣除VIP时间")
     public Response<User> rechargeVIP(@RequestBody AdminRechargeVipRequest request, HttpServletRequest servletRequest) {
@@ -197,7 +195,7 @@ public class AdminController {
             return Response.fail(-29);
         }
         user.setUsing_status(User.NONE);
-        userService.updateUserStateAndVIPTime(user);
+        userService.updateUserStatus(user);
         reserveService.updateReserveStatus(reserve);
         tableService.updateTableReserveState(table);
         return Response.success(reserve);

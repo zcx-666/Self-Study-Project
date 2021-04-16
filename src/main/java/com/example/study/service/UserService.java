@@ -2,12 +2,11 @@ package com.example.study.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.example.study.JwtUtils;
 import com.example.study.mapper.UserMapper;
 import com.example.study.model.Response;
 import com.example.study.model.entity.User;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -30,7 +29,7 @@ public class UserService {
     @Resource
     private UserMapper userMapper;
 
-    private final String cookie_name = ResourceBundle.getBundle("string").getString("cookie_name");
+    private static final String cookie_name = ResourceBundle.getBundle("string").getString("cookie_name");
 
     private static String encryption(@NotNull String str) {
         try {
@@ -54,7 +53,12 @@ public class UserService {
             return null;
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals(cookie_name)) {
-                user = userMapper.selectUserByCookie(cookie.getValue());
+                String userCookie = JwtUtils.getCookie(cookie.getValue());
+                if(userCookie == null){
+                    return null;
+                }else {
+                    user = userMapper.selectUserByCookie(userCookie);
+                }
             }
         }
         return user;
@@ -111,8 +115,11 @@ public class UserService {
     /*更新用户的cookie，并把cookie放入返回头*/
     public Boolean updateCookie(HttpServletResponse servletResponse, String openid) {
         String cookieStr = encryption(openid + System.currentTimeMillis());
-        Cookie cookie = new Cookie(cookie_name, cookieStr);
+        String token = JwtUtils.generateCookie(cookieStr);
+        Cookie cookie = new Cookie(cookie_name, token);
         cookie.setPath("/");
+        // 过期时间是365天，单位秒
+        cookie.setMaxAge(365*24*60*60);
         servletResponse.addCookie(cookie);
         userMapper.updateCookie(openid, cookieStr);
         return true;
@@ -121,11 +128,6 @@ public class UserService {
     public Boolean updateSession_key(String openid, String session_key) {
         userMapper.updateSession_key(openid, session_key);
         return true;
-    }
-
-
-    public void updateUserReserveState(User user) {
-        userMapper.updateUserReserveState(user);
     }
 
     public void rechargeVIP(User user, String wechat_pay_id, Integer vipDay, Integer vipTime) {
@@ -138,7 +140,6 @@ public class UserService {
         // TODO: 把返回值改回int
         User user1 = selectUserByCookie(request);
         if (user1 == null) {
-
             return Response.fail(-1, request.getCookies());
         }
         user.copyUser(user1);
@@ -156,16 +157,11 @@ public class UserService {
         return null;
     }
 
-    public void updateUserStateAndVIPTime(User user) {
-        userMapper.updateUserReserveStateAndVIPTime(user);
-    }
-
     public void giveAuthority(User user) {
         userMapper.updateIsAdmin(user);
     }
 
-    public void updateUser(User user){
-        // 通过openid更新用户的所有数据
-        userMapper.updateUser(user);
+    public void updateUserStatus(User user) {
+        userMapper.updateUserStatus(user);
     }
 }

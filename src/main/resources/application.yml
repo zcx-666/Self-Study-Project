@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost/study?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
-    password: root
+    password: Lsq2000..
 
 debug:
   false

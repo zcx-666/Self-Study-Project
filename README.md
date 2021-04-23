@@ -297,6 +297,30 @@ overdue_time
     Integer userPassword = new Integer(res.getString("user.password"));
     System.out.println(userName + userPassword);
 
+### 关闭Jar脚本
+    #!/bin/bash
+    PID=$(ps -ef | grep study-0.0.1-SNAPSHOT.jar | grep -v grep | awk '{ print $2 }')
+    if [ -z "$PID" ]
+    then
+        echo Application is already stopped
+    else
+        echo kill $PID
+        kill $PID
+    fi
+
+### 云服务器配置
+- [mysql安装][4]
+- [jdk-8u202-linux-x64.tar][5]
+- [java安装(方法1,然后重启)][6]
+- 主账号ID 100018979932 用户名 zcx 登录密码 Lsq2000..
+- nohup java -jar study-0.0.1-SNAPSHOT.jar  > log.file  2>&1 &
+- [mysql安装, 手动下载然后上传https://www.cnblogs.com/Erick-L/p/12710888.html][7]
+#### navicat连接远程数据库
+    use mysql;
+    select user, host from user;
+    update user set host = '%' where user = 'root';
+    # 然后在navicat中配置
+
 ### 注解
 #### @Resource
 没弄明白，就当作可以自动实例化一个类的成员变量。
@@ -339,3 +363,7 @@ aplication.yml:
 [1]: https://blog.csdn.net/peng86788/article/details/80534086
 [2]: https://zhuanlan.zhihu.com/p/49996147
 [3]: https://www.cnblogs.com/javahr/p/9664203.html
+[4]: https://blog.csdn.net/qq_36582604/article/details/80526287
+[5]: https://repo.huaweicloud.com/java/jdk/8u202-b08/
+[6]: https://blog.csdn.net/dhr201499/article/details/81626466
+[7]: https://blog.csdn.net/wtopps/article/details/109628848

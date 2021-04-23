@@ -53,7 +53,7 @@ public class JwtUtils {
         if (claims == null) {
             return null;
         } else {
-            if(isTokenExpired(token)){
+            if (isTokenExpired(token)) {
                 return null;
             }
             return (String) claims.get(payloadName);
@@ -70,7 +70,7 @@ public class JwtUtils {
         return new Date(claims.getExpiration().getTime());
     }
 
-    public static String generateCookie(String cookieStr){
+    public static String generateCookie(String cookieStr) {
         Map<String, Object> m = new HashMap<>();
 //        String cookie = encryption(cookieStr + System.currentTimeMillis());
         m.put(payloadName, cookieStr);

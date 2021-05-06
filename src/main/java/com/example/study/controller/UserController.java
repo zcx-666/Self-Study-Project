@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.example.study.model.Response;
 import com.example.study.model.entity.User;
 import com.example.study.model.request.BuyVipDayRequest;
+import com.example.study.model.request.CallBackRequest;
 import com.example.study.model.request.LoginRequest;
 import com.example.study.service.UserService;
 import io.swagger.annotations.Api;
@@ -75,18 +76,21 @@ public class UserController {
     }
 
     @PostMapping("/rechargeVIP")
-    public Response<User> rechargeVIP(@RequestBody BuyVipDayRequest buyVipDayRequest, HttpServletRequest servletRequest) {
+    public Response<User> rechargeVIP(@RequestBody BuyVipDayRequest request, HttpServletRequest servletRequest) {
         User user = new User();
         Response errRes = userService.judgeUser(servletRequest, user);
         if(errRes != null){
             return errRes;
         }
-        if(user.getVip_time() <= buyVipDayRequest.getTime()){
-            user.refreshOverDueTime();
+        user.setVip_daypass(user.getVip_daypass() + request.getDay());
+        user.setVip_time(user.getVip_time() + request.getTime());
+        if(request.getOverdue_time() != null){
+            user.setOverdue_time(request.getOverdue_time());
         }
-        user.setVip_daypass(user.getVip_daypass() + buyVipDayRequest.getDay());
-        user.setVip_time(user.getVip_time() + buyVipDayRequest.getTime());
-        userService.rechargeVIP(user, buyVipDayRequest.getWechat_pay_id(), buyVipDayRequest.getDay(), buyVipDayRequest.getTime());
+        if(request.getOverdue_day() != null){
+            user.setOverdue_day(request.getOverdue_day());
+        }
+        userService.rechargeVIP(user, request.getWechat_pay_id(), request.getDay(), request.getTime(), request.getOverdue_day(), request.getOverdue_time());
         return Response.success(user);
     }
 
@@ -99,5 +103,10 @@ public class UserController {
             return errRes;
         }
         return Response.success(user);
+    }
+
+    //@PostMapping("/callBack")
+    public void callBack(@RequestBody CallBackRequest request){
+        System.out.println(request);
     }
 }

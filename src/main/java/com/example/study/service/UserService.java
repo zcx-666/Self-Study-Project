@@ -2,7 +2,8 @@ package com.example.study.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.example.study.JwtUtils;
+import com.example.study.model.entity.WxConfig;
+import com.example.study.utils.JwtUtils;
 import com.example.study.mapper.UserMapper;
 import com.example.study.model.Response;
 import com.example.study.model.entity.User;
@@ -20,6 +21,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Timestamp;
 import java.util.ResourceBundle;
 
 @Service
@@ -66,9 +68,8 @@ public class UserService {
 
     public JSONObject GetOpenidAndSession(String path, String code) throws Exception {
         // String path = "https://api.weixin.qq.com/sns/jscode2session";
-        ResourceBundle res = ResourceBundle.getBundle("string");
-        String appid = res.getString("appid");
-        String secret = res.getString("appsecret");
+        String appid = WxConfig.APPID;
+        String secret = WxConfig.APPSECRET;
         // https://api.weixin.qq.com/sns/jscode2session?appid=APPID&secret=SECRET&js_code=JSCODE&grant_type=authorization_code
         path += "?appid=" + appid + "&secret=" + secret + "&js_code=" + code + "&grant_type=authorization_code";
         URL url = new URL(path);
@@ -130,10 +131,11 @@ public class UserService {
         return true;
     }
 
-    public void rechargeVIP(User user, String wechat_pay_id, Integer vipDay, Integer vipTime) {
+    public void rechargeVIP(User user, String wechat_pay_id, Integer vipDay, Integer vipTime, Timestamp overdue_day, Timestamp overdue_time) {
+        // request.getOverdue_day(), request.getOverdue_time()
         userMapper.updateUserVIPTime(user);
         //#{wechat_pay_id}, #{vip_daypass}, #{vip_time}, #{openid}
-        userMapper.insertVIPRecord(wechat_pay_id, vipDay, vipTime, user.getOpenid());
+        userMapper.insertVIPRecord(wechat_pay_id, vipDay, vipTime, user.getOpenid(), overdue_day, overdue_time);
     }
 
     public Response judgeUser(HttpServletRequest request, User user) {

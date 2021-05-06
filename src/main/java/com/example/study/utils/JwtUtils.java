@@ -1,4 +1,4 @@
-package com.example.study;
+package com.example.study.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -6,10 +6,6 @@ import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
 
 
-import javax.validation.constraints.NotNull;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.sql.Date;
 import java.util.HashMap;
 import java.util.Map;

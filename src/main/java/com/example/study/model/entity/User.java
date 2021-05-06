@@ -37,8 +37,12 @@ public class User implements Serializable {
     @ApiModelProperty("剩余可用时间（秒），可能是负数，但是过期之后会重置为0")
     private int vip_time = 0;
 
-    @ApiModelProperty("时长卡到期时间\"yyyy-MM-dd hh:mm:ss\",当时长卡不生效的是否返回值为null")
+    @ApiModelProperty("时长卡到期时间\"yyyy-MM-dd hh:mm:ss\",当时长卡过期后返回null")
     private Timestamp overdue_time;
+
+    @ApiModelProperty("天长卡到期时间\"yyyy-MM-dd hh:mm:ss\",当天卡过期后返回null")
+    private Timestamp overdue_day;
+
     @JsonIgnore
     @ApiModelProperty("来自微信官方")
     private String session_key;
@@ -49,6 +53,11 @@ public class User implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     public Timestamp getOverdue_time() {
         return overdue_time;
+    }
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    public Timestamp getOverdue_day() {
+        return overdue_day;
     }
 
     public void copyUser(User user) {
@@ -73,6 +82,7 @@ public class User implements Serializable {
         return using_status != NONE;
     }
 
+    @Deprecated
     public void refreshOverDueTime(){
         Timestamp t = new Timestamp(System.currentTimeMillis());
         t.setDate(t.getDate() + 90);

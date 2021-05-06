@@ -1,7 +1,7 @@
 package com.example.study.controller;
 
 
-import com.example.study.TimeUtils;
+import com.example.study.utils.TimeUtils;
 import com.example.study.model.Response;
 import com.example.study.model.entity.Reserve;
 import com.example.study.model.entity.Table;
@@ -120,7 +120,7 @@ public class ReserveController {
         return Response.success(t);
     }
 
-    @GetMapping("/searchTableSchedule")
+    //@GetMapping("/searchTableSchedule")
     @ApiOperation(value = "searchTableSchedule（不推荐使用）", notes = "查询所有桌子的所有状态的订单，如果桌子没有订单，则除了table_id外都为空(不推荐使用，推荐使用/getValidReserve)")
     public Response<List<Reserve>> searchTableSchedule(HttpServletRequest servletRequest) {
         User user = new User();
@@ -343,7 +343,7 @@ public class ReserveController {
         reserve.setReserve_end(now);
         reserve.setReserve_status(Reserve.FINISH);
         if (user.getUsing_status() == User.TIME) {
-            Long useTime = (reserve.getReserve_end().getTime() - reserve.getReserve_start().getTime()) / 1000;
+            Long useTime = (reserve.getReserve_end().getTime() - reserve.getReserve_start().getTime()) / 1000 * finishRequest.getPower();
             Long left = user.getVip_time() - useTime;
             Integer t = left.intValue(); // Long => Integer
             user.setVip_time(t);
@@ -359,16 +359,8 @@ public class ReserveController {
         return Response.success(reserve);
     }
 
-    @GetMapping("/tt")
-    public void tt(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        System.out.println(cookies.toString());
-        for (Cookie cookie : cookies) {
-            if (cookie.getName().equals("study_cookie")) {
-                System.out.println(cookie);
-                System.out.println(cookie.getValue());
-//                user = userMapper.selectUserByCookie(cookie.getValue());
-            }
-        }
+    @GetMapping("/hello")
+    public String tt(HttpServletRequest request) {
+       return "hello world!";
     }
 }

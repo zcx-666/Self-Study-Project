@@ -41,7 +41,7 @@ public class AdminController {
     public Response<User> rechargeVIP(@RequestBody AdminRechargeVipRequest request, HttpServletRequest servletRequest) {
         User admin = new User();
         Response errRes = userService.judgeAdmin(servletRequest, admin);
-        if(errRes != null){
+        if (errRes != null) {
             return errRes;
         }
         String url = "https://api.weixin.qq.com/sns/jscode2session"; // code换openid和session_key
@@ -62,23 +62,26 @@ public class AdminController {
         String Openid = res.getString("openid");
 //        String Session_key = res.getString("session_key");
         User user = userService.selectUserByOpenId(Openid);
-        if(user == null){
+        if (user == null) {
             return Response.fail(-16);
         }
-        if(user.getVip_time() <= request.getVipTime()){
-            user.refreshOverDueTime();
+        if (request.getOverdue_day() != null) {
+            user.setOverdue_day(request.getOverdue_day());
+        }
+        if (request.getOverdue_time() != null) {
+            user.setOverdue_time(request.getOverdue_time());
         }
         user.setVip_daypass(user.getVip_daypass() + request.getVipDay());
         user.setVip_time(user.getVip_time() + request.getVipTime());
-        userService.rechargeVIP(user, "admin:" + admin.getOpenid(), request.getVipDay(), request.getVipTime());
+        userService.rechargeVIP(user, "admin:" + admin.getOpenid(), request.getVipDay(), request.getVipTime(), request.getOverdue_day(), request.getOverdue_time());
         return Response.success(user);
     }
 
     @GetMapping("/admin/loginByOpenid")
     @ApiOperation(value = "登录（测试用）")
-    public Response<User> login(@RequestParam("openid") String openid, HttpServletResponse servletResponse){
+    public Response<User> login(@RequestParam("openid") String openid, HttpServletResponse servletResponse) {
         User user = userService.selectUserByOpenId(openid);
-        if(user == null){
+        if (user == null) {
             return Response.fail(-16);
         }
         userService.updateCookie(servletResponse, user.getOpenid());
@@ -86,10 +89,10 @@ public class AdminController {
     }
 
     @PostMapping("/admin/giveAuthority")
-    public Response<User> giveAuthority(LoginRequest loginRequest, HttpServletRequest request){
+    public Response<User> giveAuthority(LoginRequest loginRequest, HttpServletRequest request) {
         User admin = new User();
         Response errRes = userService.judgeAdmin(request, admin);
-        if(errRes != null){
+        if (errRes != null) {
             return errRes;
         }
 
@@ -111,7 +114,7 @@ public class AdminController {
         String Openid = res.getString("openid");
 //        String Session_key = res.getString("session_key");
         User user = userService.selectUserByOpenId(Openid);
-        if(user == null){
+        if (user == null) {
             return Response.fail(-16);
         }
         user.setIsadmin(true);
@@ -121,24 +124,24 @@ public class AdminController {
 
     @GetMapping("/admin/getOpenidByCookie")
     @ApiOperation(value = "管理员获得自己的Openid")
-    public Response<String> getOpenidByCookie(HttpServletRequest request){
+    public Response<String> getOpenidByCookie(HttpServletRequest request) {
         User admin = new User();
         Response errRes = userService.judgeAdmin(request, admin);
-        if(errRes != null){
+        if (errRes != null) {
             return errRes;
-        }else {
+        } else {
             return Response.success(admin.getOpenid());
         }
     }
 
     @GetMapping("/admin/getOpenidByCode")
     @ApiOperation(value = "管理员通过用户提供的code获得Openid")
-    public Response<String> getOpenidByCode(LoginRequest loginRequest, HttpServletRequest request){
+    public Response<String> getOpenidByCode(LoginRequest loginRequest, HttpServletRequest request) {
         User admin = new User();
         Response errRes = userService.judgeAdmin(request, admin);
-        if(errRes != null){
+        if (errRes != null) {
             return errRes;
-        }else {
+        } else {
             String url = "https://api.weixin.qq.com/sns/jscode2session"; // code换openid和session_key
             JSONObject res;
             try {
@@ -160,7 +163,7 @@ public class AdminController {
     }
 
     @PostMapping("/admin/finishUse")
-    public Response<Reserve> finishUse(@RequestBody @Valid FinishRequest finishRequest, HttpServletRequest servletRequest){
+    public Response<Reserve> finishUse(@RequestBody @Valid FinishRequest finishRequest, HttpServletRequest servletRequest) {
         User admin = new User();
         Response errRes = userService.judgeAdmin(servletRequest, admin);
         if (errRes != null) {
@@ -176,7 +179,7 @@ public class AdminController {
         if (reserve.getReserve_status() != Reserve.USING) {
             return Response.fail(-30);
         }
-        if(!table.getIs_using()){
+        if (!table.getIs_using()) {
             Response.fail(-31, table);
             return Response.fail(-31);
         }
@@ -185,7 +188,7 @@ public class AdminController {
         reserve.setReserve_end(now);
         reserve.setReserve_status(Reserve.FINISH);
         if (user.getUsing_status() == User.TIME) {
-            Long useTime = (reserve.getReserve_end().getTime() - reserve.getReserve_start().getTime()) / 1000;
+            Long useTime = (reserve.getReserve_end().getTime() - reserve.getReserve_start().getTime()) / 1000 * finishRequest.getPower();
             Long left = user.getVip_time() - useTime;
             int t = left.intValue();
             user.setVip_time(t);

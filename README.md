@@ -2,18 +2,6 @@
 ## 表结构
     CREATE DATABASE study;
 ### 用户表 - user_form
-openid
-reserve_status
-using_status
-isadmin
-avatar
-vip_daypass
-vip_time
-session_key
-cookie
-is_using_daypass
-overdue_time
-
 | 名字             | 类型     |
 | ---------------- | -------- |
 | openid🔑          | char     |
@@ -27,6 +15,7 @@ overdue_time
 | using_status     | tinyint  |
 | is_using_daypass | tinyint  |
 | overdue_time     | datetime |
+| overdue_day      | datetime |
 
 
     USE study;
@@ -43,6 +32,7 @@ overdue_time
         using_status tinyint,
         is_using_daypass tinyint,
         overdue_time datetime,
+        overdue_day datetime,
         PRIMARY KEY(openid)
     );
     
@@ -124,6 +114,8 @@ overdue_time
         vip_time int,
         openid char(100),
         create_time datetime,
+        overdue_time datetime,
+        overdue_day datetime,
         PRIMARY KEY(recharge_record_id)
     );
 
@@ -146,6 +138,7 @@ overdue_time
         using_status tinyint,
         is_using_daypass tinyint,
         overdue_time datetime,
+        overdue_day datetime,
         PRIMARY KEY(openid)
     );
     
@@ -169,6 +162,19 @@ overdue_time
         reserve_status tinyint,
         PRIMARY KEY(reserve_id)
     );
+    USE study;
+    CREATE TABLE recharge_record_form
+    (
+        recharge_record_id int NOT NULL AUTO_INCREMENT,
+        wechat_pay_id char(100),
+        vip_daypass smallint,
+        vip_time int,
+        openid char(100),
+        create_time datetime,
+        overdue_time datetime,
+        overdue_day datetime,
+        PRIMARY KEY(recharge_record_id)
+    );
 
     # 每分钟处理过期预定，目前不更新桌子的借阅状态
     USE study;
@@ -186,10 +192,16 @@ overdue_time
     DO UPDATE user_form SET is_using_daypass = 0 WHERE is_using_daypass = 1;
 
     # 每五分钟处理过期的时长卡
-    CREATE EVENT `study`.`vip_overdue`
+    CREATE EVENT `study`.`vip_time_overdue`
     ON SCHEDULE
     EVERY '5' MINUTE
     DO UPDATE user_form SET vip_time = 0, overdue_time = null WHERE overdue_time < NOW();
+
+    # 每五分钟处理过期的天卡
+    CREATE EVENT `study`.`vip_day_overdue`
+    ON SCHEDULE
+    EVERY '5' MINUTE
+    DO UPDATE user_form SET vip_daypass = 0, overdue_day = null WHERE overdue_day < NOW();
 
 ## Cookie
 创建cookie : openid + session_key ==sha==> cookie  
@@ -204,7 +216,7 @@ overdue_time
 - [x] 管理员下机
 - [ ] 天卡推荐座位，**其实前端有了数据可以自己推荐**
 - [x] 时长卡推荐时间(searchTableByTime)
-- [ ] **每天下班清理用户的天卡使用状态**
+- [x] **每天下班清理用户的天卡使用状态**
 - [ ] 数字大小越界测试
 - [x] 预定只能预定同一天
 - [ ] 信用系统（迟到、取消），让前端先做一个吓吓人
@@ -214,11 +226,10 @@ overdue_time
 - [ ] 把useTableRequest改成子类
 - [ ] https://developers.weixin.qq.com/community/develop/doc/0006ca988c85587908a9a88c05bc09?_at=1617962069342
 - [ ] Response日志，把返回错误代码的部分改成返回Response.fail
-- [ ] JWT认证，负载带cookie好了
+- [x] JWT认证，负载带cookie好了
 - [ ] 修改新的MySql代码
 - [ ] 时长卡到期清零（是否处理负数的情况）
-- [ ] 时长卡有九十天的有效期，如果充值的时长大于剩余时长就刷新有效期，时长卡充值的时候，结束时间为九十天后的下班时间
-- [ ] 修改cookie寿命
+- [x] 添加次卡的有效期
 ### 前端
 - [x] 预定的时候判断VIP是否足够，时长、次卡
 - [ ] 时长卡可能是负数
@@ -297,16 +308,7 @@ overdue_time
     Integer userPassword = new Integer(res.getString("user.password"));
     System.out.println(userName + userPassword);
 
-### 关闭Jar脚本
-    #!/bin/bash
-    PID=$(ps -ef | grep study-0.0.1-SNAPSHOT.jar | grep -v grep | awk '{ print $2 }')
-    if [ -z "$PID" ]
-    then
-        echo Application is already stopped
-    else
-        echo kill $PID
-        kill $PID
-    fi
+
 
 ### 云服务器配置
 - [mysql安装][4]
@@ -320,6 +322,16 @@ overdue_time
     select user, host from user;
     update user set host = '%' where user = 'root';
     # 然后在navicat中配置
+#### 关闭Jar脚本
+    #!/bin/bash
+    PID=$(ps -ef | grep study-0.0.1-SNAPSHOT.jar | grep -v grep | awk '{ print $2 }')
+    if [ -z "$PID" ]
+    then
+        echo Application is already stopped
+    else
+        echo kill $PID
+        kill $PID
+    fi
 
 ### 注解
 #### @Resource

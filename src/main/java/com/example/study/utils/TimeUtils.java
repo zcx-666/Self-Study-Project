@@ -1,4 +1,4 @@
-package com.example.study;
+package com.example.study.utils;
 
 import java.sql.Timestamp;
 import java.text.ParseException;

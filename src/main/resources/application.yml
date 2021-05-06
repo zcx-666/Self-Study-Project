@@ -1,5 +1,10 @@
 server:
-  port: 1234
+  port: 443
+  ssl:
+    key-store: classpath:www.instudyhouse.ltd.jks
+    key-store-password: qj7ul52446xb6z9
+    key-store-type: JKS
+    key-alias: www.instudyhouse.ltd
 
 spring:
   datasource:

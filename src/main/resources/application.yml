@@ -11,7 +11,10 @@ spring:
     url: jdbc:mysql://localhost/study?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
     password: Lsq2000..
-
+  mvc:
+    static-path-pattern: /**
+  resources:
+    static-locations: file:D:\,file:/root/java
 
 debug:
   false

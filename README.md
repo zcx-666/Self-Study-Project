@@ -180,10 +180,10 @@
     USE study;
     CREATE EVENT reserve_overdue ON SCHEDULE EVERY '1' MINUTE DO
     UPDATE reserve_form, user_form
-    SET reserve_form.reserve_status = 1, user_form.user_status = 0 
+    SET reserve_form.reserve_status = 1, user_form.reserve_status = 0 
     WHERE
-    (reserve_start + MINUTE ( 30 ) < NOW() OR reserve_form.reserve_end < NOW())
-    AND reserve_status = 4 AND reserve_form.openid = user_form.openid;
+    (DATE_ADD(reserve_start,INTERVAL 30 MINUTE) < NOW() OR reserve_form.reserve_end < NOW())
+    AND reserve_form.reserve_status = 4 AND reserve_form.openid = user_form.openid
 
     # 下班时结束用户的天卡生效状态
     CREATE EVENT `study`.`consume_vip`
@@ -202,6 +202,9 @@
     ON SCHEDULE
     EVERY '5' MINUTE
     DO UPDATE user_form SET vip_daypass = 0, overdue_day = null WHERE overdue_day < NOW();
+
+    # 下班时结束用户的使用
+    
 
 ## Cookie
 创建cookie : openid + session_key ==sha==> cookie  

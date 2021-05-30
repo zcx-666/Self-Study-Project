@@ -199,8 +199,7 @@ class StudyApplicationTests {
     }
 
     @Test
-    void setup() throws IOException {
-
+    void setup(){
     }
 
     @Test

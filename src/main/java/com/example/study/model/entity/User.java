@@ -27,7 +27,7 @@ public class User implements Serializable {
     @ApiModelProperty("天卡是否生效中")
     private Boolean is_using_daypass = false;
 
-    private Boolean isadmin = false;
+    private Boolean isadmin = true; // TODO: 记得改为false，用于小程序测试
 
     @ApiModelProperty("头像链接")
     private String avatar;

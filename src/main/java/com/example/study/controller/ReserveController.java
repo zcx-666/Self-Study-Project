@@ -196,7 +196,8 @@ public class ReserveController {
             reserve_post.setReserve_start(TimeUtils.dateToTimeStamp(request.getReserve_start()));
             reserve_post.setReserve_end(TimeUtils.dateToTimeStamp(request.getReserve_end()));
         } catch (ParseException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
+            log.error("错误时间格式:{}",request);
             return Response.fail(-10); // 非法的时间格式
         }
         Response errRes = userService.judgeUser(servletRequest, user);

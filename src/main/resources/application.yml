@@ -12,6 +12,7 @@ spring:
     username: root
     password: Lsq2000..
 
+
 debug:
   false
 

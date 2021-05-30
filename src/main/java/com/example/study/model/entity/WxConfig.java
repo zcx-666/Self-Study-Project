@@ -1,9 +1,9 @@
 package com.example.study.model.entity;
 
 public interface WxConfig {
-    String APPID = "wx8a8f58910b19a5e9";
+    String APPID = "wx5e291564e0fd20cc";
 //    String APPID = "wx8397f8696b538317";
-    String APPSECRET = "9f7349e57b253d285efbdd9ecd781d1c";
+    String APPSECRET = "29d708f59ca54a6a068bee3e05e00ad0";
     String mchId = "mchId"; // 商户号
     String privateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
             "MIIEpQIBAAKCAQEA0F+Rc0V6rtrkCg3YkZ4JVEdn2Vi+udaZ8cHnTDBTsLD0IYP7\n" +

@@ -362,6 +362,6 @@ public class ReserveController {
 
     @GetMapping("/hello")
     public String tt(HttpServletRequest request) {
-       return "hello world!";
+       return "hello 中文乱码!";
     }
 }

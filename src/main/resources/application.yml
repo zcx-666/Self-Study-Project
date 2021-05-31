@@ -12,9 +12,9 @@ spring:
     username: root
     password: Lsq2000..
   mvc:
-    static-path-pattern: /**
+    static-path-pattern: /img/**
   resources:
-    static-locations: file:D:\,file:/root/java
+    static-locations: file:D:\img,file:/root/java/img
 
 debug:
   false

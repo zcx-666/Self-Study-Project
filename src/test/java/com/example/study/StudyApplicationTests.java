@@ -78,14 +78,7 @@ class StudyApplicationTests {
 
     @Test
     void pp() {
-        User a = new User();
-        User b = new User();
-        a.setOpenid("123");
-        a.setAvatar("123123");
-        System.out.println(a);
-        System.out.println(b);
-        b.copyUser(a);
-        System.out.println(b);
+        log.error("123");
     }
 
 

@@ -102,7 +102,7 @@ public class ReserveController {
     public Response<List<Table>> searchTableByTime(@RequestBody @Valid SearchTableByTimeRequest request, HttpServletRequest servletRequest) {
         User user = new User();
         Response errRes = userService.judgeUser(servletRequest, user);
-        if(errRes != null){
+        if (errRes != null) {
             return errRes;
         }
         Reserve reserve = new Reserve();
@@ -197,7 +197,7 @@ public class ReserveController {
             reserve_post.setReserve_end(TimeUtils.dateToTimeStamp(request.getReserve_end()));
         } catch (ParseException e) {
             // e.printStackTrace();
-            log.error("错误时间格式:{}",request);
+            log.error("错误时间格式:{}", request);
             return Response.fail(-10); // 非法的时间格式
         }
         Response errRes = userService.judgeUser(servletRequest, user);
@@ -262,10 +262,10 @@ public class ReserveController {
         reserve_post.setReserve_status(Reserve.CONFIRMING);
         reserve_post.setTable_id(table.getTable_id());
         reserve_post.setOpenid(user.getOpenid());
-        if(user.isReserved()){
+        if (user.isReserved()) {
             reserveService.updateReserveStatusAndTime(reserve_post);
             user.setReserve_status(User.NONE);
-        }else {
+        } else {
             // 如果没有预定过，那创建时间为现在，否则就是之前的时间
             reserve_post.setCreate_time(new Timestamp(System.currentTimeMillis()));
             reserveService.insertNewReserve(reserve_post);
@@ -274,9 +274,9 @@ public class ReserveController {
         List<Reserve> reserves = reserveService.selectConflictingReserve(reserve_post);
         if (reserves.size() > 0) {
             log.info("使用冲突纪录：{}", reserves);
-            if(user.isReserved()){
+            if (user.isReserved()) {
                 reserveService.updateReserveStatusAndTime(reserve);
-            }else {
+            } else {
                 reserveService.deleteReserveById(reserve_post);
             }
             return Response.fail(-7, reserves); // 冲突
@@ -335,7 +335,7 @@ public class ReserveController {
             return Response.fail(-30);
         }
         if (!table.getIs_using()) {
-            log.error("找到了使用中的订单，但是桌子并没有在使用中:{},{}",reserve,table);
+            log.error("找到了使用中的订单，但是桌子并没有在使用中:{},{}", reserve, table);
             return Response.fail(-31);
         }
         table.setIs_using(false);
@@ -350,6 +350,8 @@ public class ReserveController {
             user.setVip_time(t);
         } else if (user.getUsing_status() == User.DAY) {
             // 使用天卡的话什么都不用管，直接取消就好了，反正肯定已经是生效状态，时间也在使用的时候扣了
+        } else if (user.getUsing_status() == User.NUMBER) {
+            // 使用次卡也不用管，反正次数已经在使用的时候扣过了
         } else {
             return Response.fail(-29);
         }
@@ -362,6 +364,6 @@ public class ReserveController {
 
     @GetMapping("/hello")
     public String tt(HttpServletRequest request) {
-       return "hello 中文乱码!";
+        return "hello 中文乱码!";
     }
 }

@@ -56,9 +56,9 @@ public class UserService {
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals(cookie_name)) {
                 String userCookie = JwtUtils.getCookie(cookie.getValue());
-                if(userCookie == null){
+                if (userCookie == null) {
                     return null;
-                }else {
+                } else {
                     user = userMapper.selectUserByCookie(userCookie);
                 }
             }
@@ -120,7 +120,7 @@ public class UserService {
         Cookie cookie = new Cookie(cookie_name, token);
         cookie.setPath("/");
         // 过期时间是365天，单位秒
-        cookie.setMaxAge(365*24*60*60);
+        cookie.setMaxAge(365 * 24 * 60 * 60);
         servletResponse.addCookie(cookie);
         userMapper.updateCookie(openid, cookieStr);
         return true;
@@ -131,11 +131,11 @@ public class UserService {
         return true;
     }
 
-    public void rechargeVIP(User user, String wechat_pay_id, Integer vipDay, Integer vipTime, Timestamp overdue_day, Timestamp overdue_time) {
+    public void rechargeVIP(User user, String wechat_pay_id, Integer vipDay, Integer vipTime, Integer vipNumber, Timestamp overdue_day, Timestamp overdue_time, Timestamp overdue_number) {
         // request.getOverdue_day(), request.getOverdue_time()
         userMapper.updateUserVIPTime(user);
         //#{wechat_pay_id}, #{vip_daypass}, #{vip_time}, #{openid}
-        userMapper.insertVIPRecord(wechat_pay_id, vipDay, vipTime, user.getOpenid(), overdue_day, overdue_time);
+        userMapper.insertVIPRecord(wechat_pay_id, vipDay, vipTime, vipNumber, user.getOpenid(), overdue_day, overdue_time, overdue_number);
     }
 
     public Response judgeUser(HttpServletRequest request, User user) {

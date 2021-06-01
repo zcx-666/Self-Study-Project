@@ -10,31 +10,14 @@
 | cookie           | varchar  |
 | vip_daypass      | smallint |
 | vip_time         | int      |
+| vip_number       | int      |
 | isadmin          | tinyint  |
 | reserve_status   | tinyint  |
 | using_status     | tinyint  |
 | is_using_daypass | tinyint  |
 | overdue_time     | datetime |
 | overdue_day      | datetime |
-
-
-    USE study;
-    CREATE TABLE user_form
-    (
-        openid char(100) NOT NULL,
-        session_key varchar(100),
-        avatar varchar(100),
-        cookie varchar(100),
-        vip_daypass smallint,
-        vip_time int,
-        isadmin tinyint,
-        reserve_status tinyint,
-        using_status tinyint,
-        is_using_daypass tinyint,
-        overdue_time datetime,
-        overdue_day datetime,
-        PRIMARY KEY(openid)
-    );
+| overdue_number   | datetime |
     
 #### 状态表
 | 状态代码 | 状态含义          |
@@ -42,6 +25,7 @@
 | 0        | 无预定/使用       |
 | 1        | 使用时长预定/使用 |
 | 2        | 使用天卡预定/使用 |
+| 3        | 使用次卡预定/使用 |
 
 
 ### 自习桌表 - table_form
@@ -50,15 +34,6 @@
 | table_id🔑  | int     |
 | is_reserve | tinyint |
 | is_using   | tinyint |
-
-    USE study;
-    CREATE TABLE table_form
-    (
-        table_id int NOT NULL AUTO_INCREMENT,
-        is_reserve tinyint,
-        is_using tinyint,
-        PRIMARY KEY(table_id)
-    );
 
 
 ### 预定表 - reserve_form
@@ -71,19 +46,6 @@
 | openid         | varchar  |
 | table_id       | int      |
 | reserve_status | tinyint  |
-
-    USE study;
-    CREATE TABLE reserve_form
-    (
-        reserve_id int NOT NULL AUTO_INCREMENT,
-        reserve_start datetime,
-        reserve_end datetime,
-        create_time datetime,
-        openid varchar(100),
-        table_id int,
-        reserve_status tinyint,
-        PRIMARY KEY(reserve_id)
-    );
 
 #### 状态表
 | 状态代码 | 状态含义       |
@@ -102,23 +64,12 @@
 | wechat_pay_id       | char(100) |
 | vip_daypass         | smallint  |
 | vip_time            | int       |
+| vip_number          | int       |
+| overdue_time        | datetime  |
+| overdue_day         | datetime  |
+| overdue_number         | datetime  |
 | openid              | char(100) |
 | create_time         | datetime  |
-
-    USE study;
-    CREATE TABLE recharge_record_form
-    (
-        recharge_record_id int NOT NULL AUTO_INCREMENT,
-        wechat_pay_id char(100),
-        vip_daypass smallint,
-        vip_time int,
-        openid char(100),
-        create_time datetime,
-        overdue_time datetime,
-        overdue_day datetime,
-        PRIMARY KEY(recharge_record_id)
-    );
-
 
 ## MySQL创建代码
     mysql -u root -p
@@ -133,12 +84,14 @@
         cookie varchar(100),
         vip_daypass smallint,
         vip_time int,
+        vip_number int,
         isadmin tinyint,
         reserve_status tinyint,
         using_status tinyint,
         is_using_daypass tinyint,
         overdue_time datetime,
         overdue_day datetime,
+        overdue_number datetime，
         PRIMARY KEY(openid)
     );
     
@@ -169,10 +122,12 @@
         wechat_pay_id char(100),
         vip_daypass smallint,
         vip_time int,
+        vip_number int,
         openid char(100),
         create_time datetime,
         overdue_time datetime,
         overdue_day datetime,
+        overdue_number datetime,
         PRIMARY KEY(recharge_record_id)
     );
 
@@ -202,6 +157,12 @@
     ON SCHEDULE
     EVERY '5' MINUTE
     DO UPDATE user_form SET vip_daypass = 0, overdue_day = null WHERE overdue_day < NOW();
+
+    # 每五分钟处理过期的次卡
+    CREATE EVENT `study`.`vip_number_overdue`
+    ON SCHEDULE
+    EVERY '5' MINUTE
+    DO UPDATE user_form SET vip_number = 0, overdue_number = null WHERE overdue_number < NOW();
 
     # 下班时结束用户的使用
     

@@ -13,21 +13,22 @@ public class User implements Serializable {
     // TODO：增加reserve_id，-1为空，增加查找效率
     public static final int NONE = 0; // 无预定/无使用
     public static final int TIME = 1; // 时长卡
-    public static final int DAY = 2; // 次卡
+    public static final int DAY = 2; // 天卡
+    public static final int NUMBER = 3; // 次卡
 
     @JsonIgnore
     private String openid;
 
-    @ApiModelProperty("0.无预定 1.正在使用时长预定 2.正在使用天卡预定")
+    @ApiModelProperty("0.无预定 1.正在使用时长预定 2.正在使用天卡预定 3.正在使用次卡预定")
     private int reserve_status = NONE;
 
-    @ApiModelProperty("0.无使用 1.正在使用时长自习 2.正在使用天卡自习")
+    @ApiModelProperty("0.无使用 1.正在使用时长自习 2.正在使用天卡自习 3.正在使用次卡自习")
     private int using_status = NONE;
 
     @ApiModelProperty("天卡是否生效中")
     private Boolean is_using_daypass = false;
 
-    private Boolean isadmin = false;
+    private Boolean isadmin = true; // TODO: 测试用
 
     @ApiModelProperty("头像链接")
     private String avatar;
@@ -36,12 +37,17 @@ public class User implements Serializable {
     private int vip_daypass = 0;
     @ApiModelProperty("剩余可用时间（秒），可能是负数，但是过期之后会重置为0")
     private int vip_time = 0;
+    @ApiModelProperty("剩余可用次数（次）")
+    private int vip_number = 0;
 
     @ApiModelProperty("时长卡到期时间\"yyyy-MM-dd hh:mm:ss\",当时长卡过期后返回null")
     private Timestamp overdue_time;
 
     @ApiModelProperty("天长卡到期时间\"yyyy-MM-dd hh:mm:ss\",当天卡过期后返回null")
     private Timestamp overdue_day;
+
+    @ApiModelProperty("次长卡到期时间\"yyyy-MM-dd hh:mm:ss\",当次卡过期后返回null")
+    private Timestamp overdue_number;
 
     @JsonIgnore
     @ApiModelProperty("来自微信官方")
@@ -60,6 +66,11 @@ public class User implements Serializable {
         return overdue_day;
     }
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    public Timestamp getOverdue_number() {
+        return overdue_number;
+    }
+
     public void copyUser(User user) {
         openid = user.openid;
         reserve_status = user.reserve_status;
@@ -68,10 +79,13 @@ public class User implements Serializable {
         avatar = user.avatar;
         vip_daypass = user.vip_daypass;
         vip_time = user.vip_time;
+        vip_number = user.vip_number;
         session_key = user.session_key;
         cookie = user.cookie;
         is_using_daypass = user.is_using_daypass;
         overdue_time = user.overdue_time;
+        overdue_day = user.overdue_day;
+        overdue_number = user.overdue_number;
     }
 
     public Boolean isReserved() {

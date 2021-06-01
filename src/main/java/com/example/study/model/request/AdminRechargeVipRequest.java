@@ -15,6 +15,8 @@ public class AdminRechargeVipRequest {
     @NotNull
     private Integer vipTime;
     @NotNull
+    private Integer vipNumber;
+    @NotNull
     @ApiModelProperty("wx.login获得的code")
     private String code;
     @ApiModelProperty("天卡过期时间")
@@ -24,4 +26,8 @@ public class AdminRechargeVipRequest {
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     @ApiModelProperty("时长卡过期时间")
     private Timestamp overdue_time;
+
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
+    @ApiModelProperty("次卡卡过期时间")
+    private Timestamp overdue_number;
 }

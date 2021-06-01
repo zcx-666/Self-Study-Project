@@ -73,7 +73,7 @@ public class AdminController {
         }
         user.setVip_daypass(user.getVip_daypass() + request.getVipDay());
         user.setVip_time(user.getVip_time() + request.getVipTime());
-        userService.rechargeVIP(user, "admin:" + admin.getOpenid(), request.getVipDay(), request.getVipTime(), request.getOverdue_day(), request.getOverdue_time());
+        userService.rechargeVIP(user, "admin:" + admin.getOpenid(), request.getVipDay(), request.getVipTime(), request.getVipNumber(), request.getOverdue_day(), request.getOverdue_time(), request.getOverdue_number());
         return Response.success(user);
     }
 
@@ -194,6 +194,8 @@ public class AdminController {
             user.setVip_time(t);
         } else if (user.getUsing_status() == User.DAY) {
             // 使用天卡的话什么都不用管，直接取消就好了，反正肯定已经是生效状态，时间也在使用的时候扣了
+        } else if(user.getUsing_status() == User.NUMBER){
+            // 使用次卡也不用管，反正次数已经在使用的时候扣过了
         } else {
             return Response.fail(-29);
         }

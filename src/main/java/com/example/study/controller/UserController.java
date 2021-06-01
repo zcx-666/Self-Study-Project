@@ -77,6 +77,8 @@ public class UserController {
 
     @PostMapping("/rechargeVIP")
     public Response<User> rechargeVIP(@RequestBody BuyVipDayRequest request, HttpServletRequest servletRequest) {
+        if (true) // TODO: 用户充值
+            return Response.fail(-99, "此接口未开放");
         User user = new User();
         Response errRes = userService.judgeUser(servletRequest, user);
         if(errRes != null){
@@ -90,7 +92,7 @@ public class UserController {
         if(request.getOverdue_day() != null){
             user.setOverdue_day(request.getOverdue_day());
         }
-        userService.rechargeVIP(user, request.getWechat_pay_id(), request.getDay(), request.getTime(), request.getOverdue_day(), request.getOverdue_time());
+        userService.rechargeVIP(user, request.getWechat_pay_id(), request.getDay(), request.getTime(), request.getNumber(), request.getOverdue_day(), request.getOverdue_time(), request.getOverdue_number());
         return Response.success(user);
     }
 

@@ -126,6 +126,12 @@ public class ReserveService {
                 return -22; // VIP时长不足
             }
             user.setReserve_status(User.DAY);
+        } else if (code == ReserveRequest.NUMBER) {
+            // 使用次卡
+            if (user.getVip_number() <= 0) {
+                return -22; // VIP时长不足
+            }
+            user.setReserve_status(User.NUMBER);
         } else {
             return -11;
         }
@@ -142,8 +148,8 @@ public class ReserveService {
     }
 
     /*
-    *  判断时间的合法性
-    * */
+     *  判断时间的合法性
+     * */
     public Integer judgeUseTime(Reserve reserve, User user, Integer code) {
         Integer errCode = judgeTime(reserve);
         if (errCode != 0) {
@@ -179,6 +185,13 @@ public class ReserveService {
                 user.setVip_daypass(user.getVip_daypass() - 1);
             }
             user.setUsing_status(User.DAY);
+        } else if (code == ReserveRequest.NUMBER) {
+            // 使用次卡
+            if (user.getVip_number() <= 0) {
+                return -22; // VIP时长不足
+            }
+            user.setUsing_status(User.NUMBER);
+            user.setVip_number(user.getVip_number() - 1);
         } else {
             return -11;
         }

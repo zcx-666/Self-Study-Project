@@ -71,8 +71,12 @@ public class AdminController {
         if (request.getOverdue_time() != null) {
             user.setOverdue_time(request.getOverdue_time());
         }
+        if (request.getOverdue_number() != null) {
+            user.setOverdue_number(request.getOverdue_number());
+        }
         user.setVip_daypass(user.getVip_daypass() + request.getVipDay());
         user.setVip_time(user.getVip_time() + request.getVipTime());
+        user.setVip_number(user.getVip_number() + request.getVipNumber());
         userService.rechargeVIP(user, "admin:" + admin.getOpenid(), request.getVipDay(), request.getVipTime(), request.getVipNumber(), request.getOverdue_day(), request.getOverdue_time(), request.getOverdue_number());
         return Response.success(user);
     }
